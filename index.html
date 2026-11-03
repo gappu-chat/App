@@ -367,6 +367,24 @@ function enterApp() {
 
   listRef = db.ref('userChats/' + me.uid);
   listRef.on('value', s => { chats = s.val() || {}; renderList(); });
+  
+  // Check if URL has ?chat=username
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetChat = urlParams.get('chat');
+  if (targetChat) {
+      window.history.replaceState({}, document.title, window.location.pathname); // Clear URL
+      // Set search query and trigger search
+      document.getElementById('q').value = targetChat;
+      search().then(() => {
+          setTimeout(() => {
+              const firstRow = document.getElementById('results').querySelector('.row');
+              if (firstRow) firstRow.click();
+              document.getElementById('q').value = ''; 
+              document.getElementById('results').innerHTML = '';
+              renderList();
+          }, 500);
+      });
+  }
   blkRef = db.ref('blocks/' + me.uid);
   blkRef.on('value', s => { blocked = s.val() || {}; if (cur) updBlk(); });
 }
@@ -472,17 +490,7 @@ async function search() {
   } catch (e) {}
   if (!n && q !== prof.username) box.appendChild(el('div', 'empty', t('nouser')));
   
-  const urlParams = new URLSearchParams(window.location.search);
-  const targetChat = urlParams.get('chat');
-  if (targetChat && q === targetChat) {
-      const firstRow = box.querySelector('.row');
-      if (firstRow) {
-          firstRow.click();
-          window.history.replaceState({}, document.title, window.location.pathname);
-          document.getElementById('q').value = ''; document.getElementById('results').innerHTML = '';
-          renderList();
-      }
-  }
+  // URL chat logic moved to enterApp to catch it on load
 }
 
 // ---------- Chat Open/Send ----------
