@@ -85,6 +85,16 @@ button.ic{width:42px;height:42px;padding:0;margin:0;border-radius:50%;flex-shrin
 </head>
 <body>
 
+<div id="loadingScreen" style="position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--acc);">
+  <div style="font-size:4rem; margin-bottom:20px; animation:pulse 1.5s infinite;">💬</div>
+  <h2 style="color:var(--acc); margin:0;">Gappu Chat</h2>
+  <p style="color:var(--dim); margin-top:10px;">Loading...</p>
+</div>
+<style>
+@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+</style>
+
+
 <div class="w" id="auth" style="display:flex; flex-direction:column; justify-content:center; min-height:80vh;">
   <div style="text-align:center; margin-bottom:30px;">
     <div style="font-size:4rem; line-height:1; margin-bottom:10px;">💬</div>
@@ -274,7 +284,10 @@ const btn = (text, fn, alt) => { const b = el('button', alt ? 'alt' : '', text);
 const inp = (ph, val, type) => { const i = el('input'); i.placeholder = ph; i.value = val || ''; if (type) i.type = type; return i; };
 let tt;
 function toast(x) { const n = $('toast'); n.textContent = x; n.classList.remove('hidden'); clearTimeout(tt); tt = setTimeout(() => n.classList.add('hidden'), 2600); }
-function screen(id) { ['auth','claim','app'].forEach(x => $(x).classList.toggle('hidden', x !== id)); $('chat').classList.add('hidden'); }
+function screen(id) { 
+  ['auth','claim','app'].forEach(x => $(x).classList.toggle('hidden', x !== id)); 
+  $('chat').classList.add('hidden'); 
+}
 function openSheet(title, build) { $('shT').textContent = title; $('shB').innerHTML = ''; build($('shB')); $('sheet').classList.remove('hidden'); }
 function closeSheet() { $('sheet').classList.add('hidden'); }
 $('shX').onclick = closeSheet;
@@ -336,6 +349,13 @@ auth.onAuthStateChanged(async user => {
   listRef = blkRef = presenceRef = mref = typingRef = presenceListenRef = seenListenRef = null;
   closeChat(); closeSheet();
   me = user; prof = null; chats = {}; blocked = {};
+  
+  // Hide loading screen after auth check
+  setTimeout(() => {
+      const ls = document.getElementById('loadingScreen');
+      if (ls) ls.style.display = 'none';
+  }, 800);
+
   if (!user) { screen('auth'); return; }
   
   if (user.isAnonymous) { localStorage.setItem('isGuest', '1'); } else { localStorage.removeItem('isGuest'); }
