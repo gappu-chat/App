@@ -124,6 +124,15 @@ auth.onAuthStateChanged(async user => {
   me = user;
   const s = await db.ref('profiles/' + me.uid).once('value');
   if (s.exists()) {
+      const checkProf = s.val();
+      if (checkProf.banned && checkProf.banType === 'game') {
+          document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
+          return;
+      }
+      if (checkProf.banned && (checkProf.banType === 'permanent' || (checkProf.banType === '7days' && Date.now() < checkProf.banUntil))) {
+          window.location.href = 'index.html'; // Redirect to main to show ban screen
+          return;
+      }
     prof = s.val();
     $('loading').classList.add('hidden');
     $('lobby').classList.remove('hidden');

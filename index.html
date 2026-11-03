@@ -401,6 +401,22 @@ $('claimGo').onclick = async () => {
 };
 
 function enterApp() {
+  // BAN CHECK
+  if (prof.banned) {
+     if (prof.banType === '7days' && prof.banUntil && Date.now() > prof.banUntil) {
+         // Temporary ban expired, auto-unban
+         db.ref('profiles/' + me.uid).update({ banned: null, banType: null, banUntil: null });
+         prof.banned = null;
+     } else if (prof.banType !== 'game') {
+         // Permanent or active temporary ban
+         const banScreen = document.createElement('div');
+         banScreen.style.cssText = 'position:fixed;inset:0;background:#1a0000;color:#ff4d4d;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;';
+         banScreen.innerHTML = '<h1 style="font-size:3rem;">⛔</h1><h2>Account Banned</h2><p>Aapko rule todne ke liye ban kar diya gaya hai.</p><p style="font-size:0.8rem;opacity:0.7;">Contact Admin for help.</p><button onclick="localStorage.clear(); location.reload();" style="margin-top:20px;padding:10px 20px;background:#ff4d4d;border:none;border-radius:10px;color:#fff;font-weight:bold;">Logout</button>';
+         document.body.appendChild(banScreen);
+         return;
+     }
+  }
+
   screen('app'); applyTheme(); applyI18n(); showTab('Chats'); renderMe(); renderGames();
   if(!notifReqDone) { requestNotifPermission(); notifReqDone = true; }
   
@@ -881,6 +897,11 @@ const GAMES = [
 ];
 function renderGames() {
   const b = $('gameBox'); b.innerHTML = '';
+  
+  if (prof.banType === 'game') {
+      b.innerHTML = '<div style="text-align:center; color:var(--danger); margin-top:50px;"><h2>🎮 Game Banned</h2><p>Aapko games khelne se ban kar diya gaya hai.</p></div>';
+      return;
+  }
   GAMES.forEach(([e, n, d, ok, bg]) => {
     const c = el('div', 'gc'); c.style.background = bg;
     c.appendChild(el('div', 'ge', e));
