@@ -19,8 +19,8 @@ button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
 .card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
 .row{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
 .row:last-child{border-bottom:none}
-.tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;padding-bottom:5px}
-.tabs button{margin:0;white-space:nowrap;width:auto;padding:8px 16px;font-size:0.9rem}
+.tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;white-space:nowrap;padding-bottom:5px}
+.tabs button{margin:0;width:auto;padding:8px 16px;font-size:0.9rem;flex-shrink:0}
 .tabs button.on{background:var(--acc);color:var(--on)}
 .tabs button:not(.on){background:transparent;color:var(--acc)}
 .msg{text-align:center;color:var(--acc);margin-top:10px;font-weight:bold}
@@ -50,7 +50,8 @@ button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
     <button id="tabDash" class="on">📊 Dashboard</button>
     <button id="tabUsers">👥 Users</button>
     <button id="tabReports">🚨 Reports</button>
-    <button id="tabGames">🎮 Games</button>
+    <button id="tabHistory">📜 History</button>
+    <button id="tabGames">🎮 Search Game</button>
   </div>
 
   <!-- Dashboard View -->
@@ -83,6 +84,9 @@ button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
   </div>
 
   <!-- Games View -->
+  <div id="vHistory" class="hidden">
+    <div id="historyList"></div>
+  </div>
   <div id="vGames" class="hidden">
     <p class="dim" style="text-align:center;font-size:0.9rem;">Enter Game ID to view details</p>
     <input id="searchGameId" placeholder="Game ID (e.g., 12345)">
@@ -153,7 +157,7 @@ $('logoutBtn').onclick = () => auth.signOut();
 
 // --- Tabs Logic ---
 function showTab(t) {
-  ['Dash', 'Users', 'Reports', 'Games'].forEach(x => {
+  ['Dash', 'Users', 'Reports', 'History', 'Games'].forEach(x => {
     $('v' + x).classList.toggle('hidden', x !== t);
     $('tab' + x).classList.toggle('on', x === t);
   });
@@ -161,6 +165,7 @@ function showTab(t) {
 $('tabDash').onclick = () => showTab('Dash');
 $('tabUsers').onclick = () => { showTab('Users'); loadUsers(); };
 $('tabReports').onclick = () => { showTab('Reports'); loadReports(); };
+$('tabHistory').onclick = () => { showTab('History'); loadGameHistory(); };
 $('tabGames').onclick = () => showTab('Games');
 
 // --- Dashboard Data ---
@@ -294,6 +299,61 @@ async function loadReports() {
     box.appendChild(row);
   });
 }
+
+
+async function loadGameHistory() {
+  const box = $('historyList'); box.innerHTML = 'Loading...';
+  
+  // Fetch recent 50 games from both SL and Quiz
+  const slSnap = await db.ref('sl_history').limitToLast(50).once('value');
+  const qzSnap = await db.ref('quiz_history').limitToLast(50).once('value');
+  
+  let games = [];
+  slSnap.forEach(c => games.push({ type: 'Snake', ...c.val() }));
+  qzSnap.forEach(c => games.push({ type: 'Quiz', ...c.val() }));
+  
+  // Sort by timestamp (newest first)
+  games.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  
+  box.innerHTML = '';
+  if(games.length === 0) { box.innerHTML = '<p class="dim">No games played yet.</p>'; return; }
+  
+  games.forEach(g => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div>
+        <b style="color:var(--acc);">${g.type} Game</b><br>
+        <small class="dim">GID: ${g.gid}</small><br>
+        <small class="dim">Winner: ${g.winner}</small><br>
+        <small class="dim">Time: ${new Date(g.ts).toLocaleString()}</small>
+      </div>
+      <button class="sm" onclick="viewGameDetails('${g.type}', '${g.gid}')">View</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+window.viewGameDetails = async (type, gid) => {
+  const ref = type === 'Snake' ? 'sl_games/' + gid : 'quiz_games/' + gid;
+  const snap = await db.ref(ref).once('value');
+  if(!snap.exists()) return alert('Game data deleted from database!');
+  
+  const g = snap.val();
+  let html = `<b>Game Type:</b> ${type}<br><b>Game ID:</b> ${gid}<br><b>Status:</b> ${g.status}<br><br><b>Players:</b><br>`;
+  
+  if(g.players) {
+     for(const uid in g.players) {
+       html += `- ${g.players[uid].name}`;
+       if(type==='Quiz') html += ` (Score: ${g.players[uid].score})`;
+       else html += ` (Pos: ${g.players[uid].pos})`;
+       html += `<br>`;
+     }
+  }
+  $('gameResult').innerHTML = `<div class="card">${html}</div>`;
+  showTab('Games');
+  $('searchGameId').value = gid;
+};
 
 // --- Game Search Logic ---
 $('searchGameBtn').onclick = async () => {
