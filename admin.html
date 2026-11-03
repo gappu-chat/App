@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="hi" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Panel - Gappu Chat</title>
+<style>
+:root{--bg:#0d2b2a;--bg2:#1d6b66;--card:#14504d;--acc:#e0b04a;--ink:#f5f1e8;--dim:#9fc2bd;--bar:#0a2322;--on:#1b1b14;--line:#2a7a73;--danger:#e74c3c;--success:#2ecc71}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,serif;min-height:100vh}
+.w{max-width:600px;margin:0 auto;padding:16px}
+h1{color:var(--acc);text-align:center}
+input,button{font:inherit;border-radius:12px;border:2px solid var(--acc);padding:12px;width:100%;margin-bottom:10px;box-sizing:border-box}
+input{background:var(--card);color:var(--ink)}
+button{background:var(--acc);color:var(--on);font-weight:bold;cursor:pointer}
+button.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+button.warn{background:#f39c12;border-color:#f39c12;color:#fff}
+button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
+.hidden{display:none!important}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
+.row:last-child{border-bottom:none}
+.tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;padding-bottom:5px}
+.tabs button{margin:0;white-space:nowrap;width:auto;padding:8px 16px;font-size:0.9rem}
+.tabs button.on{background:var(--acc);color:var(--on)}
+.tabs button:not(.on){background:transparent;color:var(--acc)}
+.msg{text-align:center;color:var(--acc);margin-top:10px;font-weight:bold}
+.badge{background:var(--danger);color:#fff;padding:2px 6px;border-radius:10px;font-size:0.7rem;margin-left:5px}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="w" id="loginScreen">
+  <h1>🛡️ Admin Login</h1>
+  <p style="text-align:center;color:var(--dim)">Sirf authorized admin hi login kar sakte hain.</p>
+  <input id="adminEmail" type="email" placeholder="Admin Email">
+  <input id="adminPass" type="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <div class="msg" id="loginMsg"></div>
+</div>
+
+<!-- Dashboard -->
+<div class="w hidden" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+    <h1 style="margin:0;font-size:1.5rem;">👑 Admin Panel</h1>
+    <button id="logoutBtn" class="sm danger">Logout</button>
+  </div>
+
+  <div class="tabs">
+    <button id="tabDash" class="on">📊 Dashboard</button>
+    <button id="tabUsers">👥 Users</button>
+    <button id="tabReports">🚨 Reports</button>
+    <button id="tabGames">🎮 Games</button>
+  </div>
+
+  <!-- Dashboard View -->
+  <div id="vDash">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;color:var(--acc);" id="statTotalUsers">0</div>
+      <div class="dim">Total Users</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="card" style="flex:1;text-align:center;">
+        <div style="font-size:1.5rem;color:var(--success);" id="statOnline">0</div>
+        <div class="dim" style="font-size:0.8rem;">Online Now</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;">
+        <div style="font-size:1.5rem;color:var(--danger);" id="statReports">0</div>
+        <div class="dim" style="font-size:0.8rem;">Pending Reports</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users View -->
+  <div id="vUsers" class="hidden">
+    <input id="searchUser" placeholder="Search by Name, User ID or Email...">
+    <div id="usersList"></div>
+  </div>
+
+  <!-- Reports View -->
+  <div id="vReports" class="hidden">
+    <div id="reportsList"></div>
+  </div>
+
+  <!-- Games View -->
+  <div id="vGames" class="hidden">
+    <p class="dim" style="text-align:center;font-size:0.9rem;">Enter Game ID to view details</p>
+    <input id="searchGameId" placeholder="Game ID (e.g., 12345)">
+    <button id="searchGameBtn">Search Game</button>
+    <div id="gameResult"></div>
+  </div>
+</div>
+
+<!-- User Details Modal -->
+<div id="userModal" class="hidden" style="position:fixed;inset:0;background:#000c;z-index:100;display:flex;align-items:center;justify-content:center;padding:15px;">
+  <div style="background:var(--bg);border:2px solid var(--acc);border-radius:16px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;padding:15px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h2 style="margin:0;color:var(--acc);">User Details</h2>
+      <button id="closeModal" class="sm">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDFmI6YZIp7qKbgrgdr8VPLr1xkOXbGHb0",
+  authDomain: "auction-game-80e14.firebaseapp.com",
+  databaseURL: "https://auction-game-80e14-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "auction-game-80e14",
+  appId: "1:984901985057:web:8a5d78169ad75f72341460"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth(), db = firebase.database();
+const $ = id => document.getElementById(id);
+
+// YAHAN APNA ADMIN EMAIL DAALO
+const ADMIN_EMAIL = "vp061038@gmail.com"; 
+
+// --- Login Logic ---
+$('loginBtn').onclick = async () => {
+  const email = $('adminEmail').value.trim();
+  const pass = $('adminPass').value;
+  $('loginMsg').textContent = '';
+  
+  if (email !== ADMIN_EMAIL) {
+    $('loginMsg').textContent = 'Unauthorized Email!';
+    return;
+  }
+  
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    $('loginMsg').textContent = 'Login Failed: ' + e.message;
+  }
+};
+
+auth.onAuthStateChanged(user => {
+  if (user && user.email === ADMIN_EMAIL) {
+    $('loginScreen').classList.add('hidden');
+    $('dashboard').classList.remove('hidden');
+    loadDashboard();
+  } else {
+    $('loginScreen').classList.remove('hidden');
+    $('dashboard').classList.add('hidden');
+  }
+});
+
+$('logoutBtn').onclick = () => auth.signOut();
+
+// --- Tabs Logic ---
+function showTab(t) {
+  ['Dash', 'Users', 'Reports', 'Games'].forEach(x => {
+    $('v' + x).classList.toggle('hidden', x !== t);
+    $('tab' + x).classList.toggle('on', x === t);
+  });
+}
+$('tabDash').onclick = () => showTab('Dash');
+$('tabUsers').onclick = () => { showTab('Users'); loadUsers(); };
+$('tabReports').onclick = () => { showTab('Reports'); loadReports(); };
+$('tabGames').onclick = () => showTab('Games');
+
+// --- Dashboard Data ---
+async function loadDashboard() {
+  db.ref('profiles').once('value').then(s => {
+    $('statTotalUsers').textContent = s.numChildren();
+  });
+  db.ref('presence').once('value').then(s => {
+    let on = 0;
+    s.forEach(c => { if(c.val() && c.val().online) on++; });
+    $('statOnline').textContent = on;
+  });
+  db.ref('reports').once('value').then(s => {
+    $('statReports').textContent = s.numChildren();
+  });
+}
+
+// --- Users Logic ---
+let allUsers = [];
+async function loadUsers() {
+  const box = $('usersList'); box.innerHTML = 'Loading...';
+  const s = await db.ref('profiles').once('value');
+  allUsers = [];
+  s.forEach(c => { allUsers.push({ uid: c.key, ...c.val() }); });
+  renderUsers(allUsers);
+}
+
+function renderUsers(users) {
+  const box = $('usersList'); box.innerHTML = '';
+  if(users.length === 0) { box.innerHTML = '<p class="dim">No users found.</p>'; return; }
+  
+  users.forEach(u => {
+    const r = document.createElement('div');
+    r.className = 'row';
+    r.innerHTML = `
+      <div>
+        <b>${u.name}</b> <span class="dim">@${u.username}</span><br>
+        <small class="dim">🪙 ${u.coins||0} | 🏆 ${u.gamesWon||0} | 📍 ${u.city||'?'}</small>
+        ${u.banned ? '<span class="badge">BANNED</span>' : ''}
+      </div>
+      <button class="sm" onclick="openUser('${u.uid}')">View</button>
+    `;
+    box.appendChild(r);
+  });
+}
+
+$('searchUser').oninput = (e) => {
+  const q = e.target.value.toLowerCase();
+  if(!q) { renderUsers(allUsers); return; }
+  const filtered = allUsers.filter(u => 
+    (u.name && u.name.toLowerCase().includes(q)) || 
+    (u.username && u.username.toLowerCase().includes(q))
+  );
+  renderUsers(filtered);
+};
+
+// --- User Details & Actions ---
+window.openUser = async (uid) => {
+  $('userModal').classList.remove('hidden');
+  const c = $('modalContent'); c.innerHTML = 'Loading...';
+  
+  const uSnap = await db.ref('profiles/' + uid).once('value');
+  const u = uSnap.val();
+  if(!u) return;
+  
+  const pSnap = await db.ref('presence/' + uid).once('value');
+  const p = pSnap.val();
+  
+  c.innerHTML = `
+    <div style="text-align:center;margin-bottom:15px;">
+      <div style="font-size:2rem;font-weight:bold;color:var(--acc);">${u.name}</div>
+      <div class="dim">@${u.username}</div>
+      <div class="dim">📍 ${u.city || 'Unknown'}</div>
+      <div style="margin-top:10px;font-weight:bold;color:var(--acc);">
+        🪙 ${u.coins||0} Coins | 🏆 ${u.gamesWon||0} Wins
+      </div>
+      <div style="margin-top:5px;color:${p&&p.online?'var(--success)':'var(--dim)'};">
+        ${p&&p.online?'🟢 Online Now':'⚪ Last seen: ' + (p&&p.last ? new Date(p.last).toLocaleString() : 'Never')}
+      </div>
+      ${u.banned ? '<div style="color:var(--danger);font-weight:bold;margin-top:10px;">⛔ THIS USER IS BANNED</div>' : ''}
+    </div>
+    
+    <button class="danger" onclick="banUser('${uid}', 'permanent')">⛔ Permanent Ban</button>
+    <button class="warn" onclick="banUser('${uid}', '7days')">⏳ Ban for 7 Days</button>
+    <button class="warn" onclick="banUser('${uid}', 'game')">🎮 Ban from Games Only</button>
+    <button style="background:var(--success);border-color:var(--success);color:#fff;" onclick="unbanUser('${uid}')">✅ Unban User</button>
+  `;
+};
+
+$('closeModal').onclick = () => $('userModal').classList.add('hidden');
+
+window.banUser = async (uid, type) => {
+  if(!confirm('Are you sure you want to ban this user (' + type + ')?')) return;
+  const updates = {};
+  updates['profiles/' + uid + '/banned'] = true;
+  updates['profiles/' + uid + '/banType'] = type;
+  if(type === '7days') updates['profiles/' + uid + '/banUntil'] = Date.now() + (7*24*60*60*1000);
+  await db.ref().update(updates);
+  alert('User Banned!');
+  $('userModal').classList.add('hidden');
+  loadUsers();
+};
+
+window.unbanUser = async (uid) => {
+  if(!confirm('Unban this user?')) return;
+  await db.ref('profiles/' + uid).update({ banned: null, banType: null, banUntil: null });
+  alert('User Unbanned!');
+  $('userModal').classList.add('hidden');
+  loadUsers();
+};
+
+// --- Reports Logic ---
+async function loadReports() {
+  const box = $('reportsList'); box.innerHTML = 'Loading...';
+  const s = await db.ref('reports').once('value');
+  box.innerHTML = '';
+  if(s.numChildren() === 0) { box.innerHTML = '<p class="dim">No reports found.</p>'; return; }
+  
+  s.forEach(c => {
+    const r = c.val();
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div>
+        <b style="color:var(--danger);">Reason: ${r.reason}</b><br>
+        <small class="dim">By: ${r.by}</small><br>
+        <small class="dim">Against: ${r.against}</small>
+      </div>
+      <button class="sm" onclick="openUser('${r.against}')">Check User</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+// --- Game Search Logic ---
+$('searchGameBtn').onclick = async () => {
+  const gid = $('searchGameId').value.trim();
+  const box = $('gameResult'); box.innerHTML = 'Searching...';
+  if(!gid) return;
+  
+  const s = await db.ref('sl_games/' + gid).once('value');
+  if(!s.exists()) { box.innerHTML = '<p class="dim">Game ID not found in Snakes & Ladders.</p>'; return; }
+  
+  const g = s.val();
+  let html = `<div class="card"><b>Game ID: ${gid}</b><br>Status: ${g.status}<br>Players:<br>`;
+  for(const uid in g.players) {
+    html += `- ${g.players[uid].name} (Pos: ${g.players[uid].pos})<br>`;
+  }
+  html += `</div>`;
+  box.innerHTML = html;
+};
+</script>
+</body>
+</html>
