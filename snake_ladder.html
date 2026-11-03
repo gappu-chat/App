@@ -172,6 +172,7 @@ $('createBtn').onclick = async () => {
     created: Date.now(),
     players: { [me.uid]: { name: prof.name, pos: 0, color: 'p1' } },
     turn: me.uid,
+    turnStart: Date.now(),
     dice: 0
   });
   joinRoom(gid);
@@ -388,38 +389,46 @@ function updateTurn() {
     return;
   }
   
+  const turnStart = gameData.turnStart || Date.now();
+  const timePassed = Date.now() - turnStart;
+
+  if (timePassed > 12000) {
+      // Auto skip if stuck for 12 seconds
+      if (gameData.turn === me.uid) autoSkipTurn(); 
+      $('turnTxt').textContent = "Skipping turn...";
+      $('turnTxt').style.color = "#e0b04a";
+      $('rollBtn').disabled = true;
+      return;
+  }
+
   if (turnUid === me.uid) {
     $('turnTxt').textContent = "Tumhari baari!";
     $('turnTxt').style.color = "#2ecc71";
     $('rollBtn').disabled = false;
-    startTimer();
+    if(!turnInterval) startTimer(turnStart);
   } else {
     $('turnTxt').textContent = (pInfo ? pInfo.name : 'Kisi aur') + " ki baari";
     $('turnTxt').style.color = "#e74c3c";
     $('rollBtn').disabled = true;
-    clearInterval(turnInterval);
+    clearInterval(turnInterval); turnInterval = null;
     $('timerTxt').textContent = ''; 
   }
 }
 
-function startTimer() {
+function startTimer(startTime) {
   clearInterval(turnInterval);
-  let timeLeft = 10;
-  $('timerTxt').textContent = `(${timeLeft}s)`;
   turnInterval = setInterval(() => {
-    timeLeft--;
-    $('timerTxt').textContent = `(${timeLeft}s)`;
-    if(timeLeft <= 0) {
-      clearInterval(turnInterval);
-      autoSkipTurn();
-    }
-  }, 1000);
+    let timeLeft = 10 - Math.floor((Date.now() - startTime) / 1000);
+    if(timeLeft <= 0) { $('timerTxt').textContent = `(0s)`; }
+    else { $('timerTxt').textContent = `(${timeLeft}s)`; }
+  }, 500);
 }
 
 async function autoSkipTurn() {
   if (!gameData || gameData.turn !== me.uid) return;
   const updates = {};
   updates.turn = getNextTurn(true);
+  updates.turnStart = Date.now();
   updates.dice = 0;
   await gameRef.update(updates);
 }
@@ -449,6 +458,11 @@ $('rollBtn').onclick = async () => {
      updates.status = 'finished';
      updates.winner = me.uid;
      updates.finishedAt = Date.now();
+     
+     // Give Rewards
+     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(100));
+     db.ref('profiles/' + me.uid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
+     
      db.ref('sl_history').push({
         gid: currentGid,
         players: Object.values(players).map(p => p.name),

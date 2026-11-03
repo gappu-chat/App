@@ -120,6 +120,7 @@ button.ic{width:42px;height:42px;padding:0;margin:0;border-radius:50%;flex-shrin
   <p class="sub">Dost tumhe isi ID se dhundhenge. Baad mein Profile se badal sakte ho.</p>
   <input id="cname" placeholder="Tumhara naam" maxlength="20">
   <input id="cun" placeholder="User ID (a-z, 0-9, _ , 3 se 15)" maxlength="15" autocapitalize="none">
+  <input id="ccity" placeholder="Tumhara Shehar (City)" maxlength="20">
   <button id="claimGo">ID pakki karo</button>
   <button id="claimOut" class="alt">Logout</button>
   <div class="msg" id="claimMsg"></div>
@@ -295,12 +296,12 @@ auth.onAuthStateChanged(async user => {
 });
 
 $('claimGo').onclick = async () => {
-  const name = $('cname').value.trim(), un = $('cun').value.trim().toLowerCase();
+  const name = $('cname').value.trim(), un = $('cun').value.trim().toLowerCase(), city = $('ccity').value.trim() || 'Unknown';
   const m = $('claimMsg'); m.textContent = '';
   if (!name) { m.textContent = 'Naam likho.'; return; }
   if (!/^[a-z0-9_]{3,15}$/.test(un)) { m.textContent = t('badid'); return; }
   try { await db.ref('usernames/' + un).set(me.uid); } catch (e) { m.textContent = t('taken'); return; }
-  prof = { name, username: un, guest: me.isAnonymous };
+  prof = { name, username: un, city, coins: 0, gamesWon: 0, guest: me.isAnonymous };
   await db.ref('profiles/' + me.uid).set(prof);
   enterApp();
 };
@@ -741,8 +742,7 @@ function blockSheet() {
 
 // ---------- Games & Profile ----------
 const GAMES = [
-  ['🍵', 'Tap Tycoon', 'g1', true, 'linear-gradient(135deg,#f6b73c,#e4573d)'],
-  ["🪜", "Snakes & Ladders", "Classic saap-seedhi game", true, "linear-gradient(135deg,#43c59e,#1d7a5f)"],
+    ["🪜", "Snakes & Ladders", "Classic saap-seedhi game", true, "linear-gradient(135deg,#43c59e,#1d7a5f)"],
   ["🃏", "Card Match", "Card matching game", true, "linear-gradient(135deg,#f39c12,#d35400)"],
   ["🧠", "Quiz Battle", "Dosto se quiz muqabla", true, "linear-gradient(135deg,#7b61ff,#3a1f73)"],
   ["🎲", "Ludo", "g4", true, "linear-gradient(135deg,#ff7eb3,#c23b7a)"]
@@ -764,6 +764,10 @@ function renderMe() {
   const card = el('div', 'card pc');
   const av = el('div', 'av big'); setAv(av, me.uid, prof.name); av.onclick = editProfile; av.style.cursor = 'pointer';
   card.appendChild(av); card.appendChild(el('div', 'big', prof.name)); card.appendChild(el('div', 'dim', '@' + prof.username));
+  card.appendChild(el('div', 'dim', '📍 ' + (prof.city || 'City not set')));
+  const stats = el('div', '', `🪙 ${prof.coins || 0} Coins  |  🏆 ${prof.gamesWon || 0} Wins`);
+  stats.style.marginTop = '8px'; stats.style.color = 'var(--acc)'; stats.style.fontWeight = 'bold';
+  card.appendChild(stats);
   b.appendChild(card);
   
   [['✏️','editp',editProfile], ['🆔','chid',idSheet], ['✉️','email',emailSheet], ['📱','phone',phoneSheet],
@@ -804,12 +808,12 @@ function privacySheet() {
 
 function editProfile() {
   openSheet(t('editp'), b => {
-    const n = inp(t('name'), prof.name); n.maxLength = 20; const m = el('div', 'msg');
-    b.appendChild(n);
+    const n = inp(t('name'), prof.name); n.maxLength = 20; const c = inp('Shehar (City)', prof.city || ''); c.maxLength = 20; const m = el('div', 'msg');
+    b.appendChild(n); b.appendChild(c);
     b.appendChild(btn(t('photo'), () => { isChatPhoto = false; $('file').click(); }, true));
     b.appendChild(btn(t('save'), async () => {
-      const v = n.value.trim(); if (!v) return;
-      try { await db.ref('profiles/' + me.uid + '/name').set(v); prof.name = v; renderMe(); m.textContent = t('done'); }
+      const v = n.value.trim(), city = c.value.trim(); if (!v) return;
+      try { await db.ref('profiles/' + me.uid).update({ name: v, city: city || 'Unknown' }); prof.name = v; prof.city = city; renderMe(); m.textContent = t('done'); }
       catch (e) { m.textContent = t('fail'); }
     }));
     b.appendChild(m);
@@ -854,10 +858,10 @@ function shrink(f) {
     r.onload = () => {
       const i = new Image();
       i.onload = () => {
-        const c = document.createElement('canvas'); c.width = c.height = 256;
+        const c = document.createElement('canvas'); c.width = c.height = 128;
         const s = Math.min(i.width, i.height);
         c.getContext('2d').drawImage(i, (i.width - s) / 2, (i.height - s) / 2, s, s, 0, 0, 256, 256);
-        res(c.toDataURL('image/jpeg', .7));
+        res(c.toDataURL('image/jpeg', .5));
       };
       i.onerror = rej; i.src = r.result;
     };

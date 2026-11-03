@@ -259,6 +259,14 @@ function renderGame() {
      $('optionsBox').innerHTML = '';
      $('timerTxt').textContent = '';
   } else if (status === 'playing') {
+     const qStart = gameData.qStart || Date.now();
+     const timePassed = Date.now() - qStart;
+     if(timePassed > 15000 && me.uid === gameData.admin) {
+         $('nextBtn').click(); // Auto next if 15s over
+     }
+     let tLeft = 15 - Math.floor(timePassed / 1000);
+     $('timerTxt').textContent = tLeft > 0 ? `(${tLeft}s)` : `(0s)`;
+     
      const qData = QUIZ_DATA[qIndex];
      $('qNumTxt').textContent = `Q: ${qIndex + 1}/${QUIZ_DATA.length}`;
      $('questionText').textContent = qData.q;
@@ -358,13 +366,28 @@ $('pmClose').onclick = () => $('profModal').classList.add('hidden');
 $('startBtn').onclick = async () => {
    const pCount = Object.keys(gameData.players || {}).length;
    if(pCount < 2) { alert("Kam se kam 2 players chahiye!"); return; }
-   await gameRef.update({ status: 'playing', qIndex: 0, answers: {} });
+   await gameRef.update({ status: 'playing', qIndex: 0, answers: {}, qStart: Date.now() });
 };
 
 $('nextBtn').onclick = async () => {
    let nextQ = gameData.qIndex + 1;
    if (nextQ >= QUIZ_DATA.length) {
        await gameRef.update({ status: 'finished' });
+       
+       // Find winner and give rewards
+       let winnerUid = null;
+       let maxScore = -1;
+       for (const uid in gameData.players) {
+           if (gameData.players[uid].score > maxScore) {
+               maxScore = gameData.players[uid].score;
+               winnerUid = uid;
+           }
+       }
+       if (winnerUid) {
+           db.ref('profiles/' + winnerUid + '/coins').set(firebase.database.ServerValue.increment(100));
+           db.ref('profiles/' + winnerUid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
+       }
+       
        // Save history
        db.ref('quiz_history').push({
           gid: currentGid,
@@ -373,7 +396,7 @@ $('nextBtn').onclick = async () => {
           ts: Date.now()
        });
    } else {
-       await gameRef.update({ qIndex: nextQ, answers: {} });
+       await gameRef.update({ qIndex: nextQ, answers: {}, qStart: Date.now() });
    }
 };
 
