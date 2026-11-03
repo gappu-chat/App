@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google" content="notranslate">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d2b2a">
 <title>Gappu Chat</title>
 <style>
 :root,[data-theme=teal]{--bg:#0d2b2a;--bg2:#1d6b66;--card:#14504d;--acc:#e0b04a;--ink:#f5f1e8;--dim:#9fc2bd;--bar:#0a2322;--on:#1b1b14;--line:#2a7a73}
@@ -1226,6 +1228,17 @@ function applyThemeFromShop(id) {
     }
     theme = 'gold';
   }
+}
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('SW registered!', reg);
+    }).catch(err => {
+      console.log('SW registration failed!', err);
+    });
+  });
 }
 
 </script>
