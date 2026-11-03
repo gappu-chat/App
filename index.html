@@ -410,7 +410,7 @@ function renderList() {
   if (!me || $('q').value.trim()) return;
   const d = JSON.parse(LS('dchats') || '{}');
   const arr = Object.entries(chats).concat(Object.entries(d)).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
-  if (!arr.length) { box.appendChild(el('div', 'empty', t('nochat'))); if(t('hint')) box.appendChild(el('div', 'empty', t('hint'))); return; }
+  if (!arr.length) { box.appendChild(el('div', 'empty', t('nochat'))); if(t('hint') && t('hint') !== 'hint') box.appendChild(el('div', 'empty', t('hint'))); return; }
   arr.forEach(([uid, c]) => box.appendChild(personRow(uid, c.name, c.last || '', c.isGroup, c)));
 }
 let timer = null;
