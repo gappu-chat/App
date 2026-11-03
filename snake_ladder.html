@@ -16,9 +16,10 @@ button.alt{background:transparent;color:#e0b04a;}
 button:disabled{opacity:0.5;}
 .hidden{display:none!important;}
 .board{width:100%;aspect-ratio:1;background:#14504d;border:4px solid #2a7a73;border-radius:16px;position:relative;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr);gap:1px;padding:2px;box-sizing:border-box;}
-.cell{background:#1d6b66;position:relative;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9fc2bd;}
+.cell{background:#1d6b66;position:relative;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9fc2bd;flex-direction:column;}
 .cell.dark{background:#14504d;}
-.player{width:80%;height:80%;border-radius:50%;position:absolute;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 2px 5px #0008;border:1px solid #fff;font-size:8px;transition:all 0.3s;}
+.cell .icon{font-size:16px;line-height:1;}
+.player{width:80%;height:80%;border-radius:50%;position:absolute;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 2px 5px #0008;border:1px solid #fff;font-size:8px;transition:all 0.3s;z-index:2;}
 .p1{background:#e74c3c;} .p2{background:#2ecc71;} .p3{background:#f1c40f;color:#000;} .p4{background:#3498db;}
 .dice-box{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;background:#0a2322;padding:10px;border-radius:12px;}
 .dice{font-size:3rem;font-weight:bold;color:#e0b04a;width:60px;text-align:center;}
@@ -44,11 +45,8 @@ button:disabled{opacity:0.5;}
 <div class="container hidden" id="lobby">
   <h2>Snakes & Ladders</h2>
   <p style="text-align:center;font-size:0.9rem;opacity:0.8">Kisi bhi user se connect hone ke liye Global Play dabao, ya dosto ke saath khelne ke liye naya room banao.</p>
-  
   <button id="globalBtn" style="background:#2ecc71; border-color:#2ecc71; color:#fff; font-size:1.1rem; padding:15px;">🌍 Play Global</button>
-  
   <div style="width:100%; text-align:center; margin:10px 0; color:#e0b04a;">- YA -</div>
-  
   <button id="createBtn">➕ Private Room Banao</button>
   <input id="joinId" placeholder="Room ID daalo" maxlength="6" autocapitalize="characters">
   <button id="joinBtn" class="alt">Room Join Karo</button>
@@ -82,7 +80,6 @@ button:disabled{opacity:0.5;}
   </div>
 </div>
 
-<!-- Profile Popup Modal -->
 <div id="profModal" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0008;z-index:100;display:flex;align-items:center;justify-content:center;">
   <div style="background:#0d2b2a;padding:20px;border-radius:16px;border:2px solid #e0b04a;width:80%;max-width:300px;text-align:center;">
      <div id="pmAv" style="width:80px;height:80px;border-radius:50%;background:#e0b04a;margin:0 auto 10px;background-size:cover;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#1b1b14;font-weight:bold;"></div>
@@ -113,6 +110,7 @@ let me = null, prof = null, currentGid = null, gameRef = null, gameData = null;
 let chatRef = null;
 let turnInterval = null;
 
+// Snakes and Ladders mapping
 const snakes = {16:6, 47:26, 49:11, 56:53, 62:19, 64:60, 87:24, 93:73, 95:75, 98:78};
 const ladders = {1:38, 4:14, 9:31, 21:42, 28:84, 36:44, 51:67, 71:91, 80:100};
 
@@ -148,7 +146,6 @@ function joinRoom(gid) {
        let myCol = colors[pCount];
        updates['players/' + me.uid] = { name: prof.name, pos: 0, color: myCol };
        
-       // If this is the 4th player, start the game!
        if (pCount + 1 === 4) {
            updates.status = 'playing';
            updates.turn = Object.keys(players)[0] || me.uid;
@@ -168,7 +165,7 @@ function joinRoom(gid) {
 
 $('createBtn').onclick = async () => {
   if(!prof) return;
-  const gid = Math.floor(1000 + Math.random() * 9000).toString();
+  const gid = Math.floor(10000 + Math.random() * 90000).toString();
   await db.ref('sl_games/' + gid).set({
     status: 'waiting',
     admin: me.uid,
@@ -192,15 +189,16 @@ $('globalBtn').onclick = async () => {
   $('globalBtn').disabled = true;
   
   try {
-    const snap = await db.ref('sl_games').orderByChild('status').equalTo('waiting').limitToFirst(5).once('value');
+    const snap = await db.ref('sl_games').orderByChild('status').equalTo('waiting').limitToFirst(10).once('value');
     let foundGid = null;
     
     if(snap.exists()) {
       snap.forEach(child => {
         if(!foundGid) {
           const g = child.val();
+          const isOld = (Date.now() - g.created) > 1800000; // 30 mins expiry
           const pCount = Object.keys(g.players || {}).length;
-          if(pCount < 4) foundGid = child.key;
+          if(pCount < 4 && !isOld) foundGid = child.key;
         }
       });
     }
@@ -210,7 +208,7 @@ $('globalBtn').onclick = async () => {
       joinRoom(foundGid);
     } else {
       $('globalBtn').textContent = 'Creating room...';
-      const gid = Math.floor(1000 + Math.random() * 9000).toString();
+      const gid = Math.floor(10000 + Math.random() * 90000).toString();
       await db.ref('sl_games/' + gid).set({
         status: 'waiting',
         admin: me.uid,
@@ -258,28 +256,21 @@ function renderTopProfiles() {
   top.innerHTML = '';
   const players = gameData.players || {};
   const pCount = Object.keys(players).length;
-  
   const colorMap = { 'p1': '#e74c3c', 'p2': '#2ecc71', 'p3': '#f1c40f', 'p4': '#3498db' };
   
-  // Always show 4 slots
   for (let i=0; i<4; i++) {
     const wrap = document.createElement('div');
-    wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.alignItems = 'center';
-    wrap.style.padding = '5px'; wrap.style.borderRadius = '8px'; wrap.style.minWidth = '60px';
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:5px;border-radius:8px;min-width:60px;';
     
     if (i < pCount) {
       const uid = Object.keys(players)[i];
       const p = players[uid];
-      
       wrap.style.background = 'rgba(255,255,255,0.05)';
       wrap.style.border = `2px solid ${colorMap[p.color] || '#e0b04a'}`;
       wrap.style.cursor = 'pointer';
       
       const av = document.createElement('div');
-      av.style.width = '35px'; av.style.height = '35px'; av.style.borderRadius = '50%';
-      av.style.background = colorMap[p.color]; av.style.color = '#1b1b14';
-      av.style.display = 'flex'; av.style.alignItems = 'center'; av.style.justifyContent = 'center';
-      av.style.fontWeight = 'bold'; av.style.fontSize = '14px';
+      av.style.cssText = `width:35px;height:35px;border-radius:50%;background:${colorMap[p.color]};color:#1b1b14;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;`;
       av.textContent = p.name[0].toUpperCase();
       
       if (uid === gameData.turn && gameData.status === 'playing') {
@@ -289,62 +280,41 @@ function renderTopProfiles() {
       
       db.ref('profiles/' + uid).once('value').then(s => {
           const pr = s.val();
-          if(pr && pr.photo) {
-              av.style.backgroundImage = `url(${pr.photo})`;
-              av.style.backgroundSize = 'cover';
-              av.textContent = '';
-          }
+          if(pr && pr.photo) { av.style.backgroundImage = `url(${pr.photo})`; av.style.backgroundSize = 'cover'; av.textContent = ''; }
       });
       
       const nm = document.createElement('div');
       nm.textContent = p.name.split(' ')[0]; 
-      nm.style.fontSize = '10px'; nm.style.marginTop = '4px'; nm.style.color = '#fff'; nm.style.fontWeight = 'bold';
+      nm.style.cssText = 'font-size:10px;margin-top:4px;color:#fff;font-weight:bold;';
       
-      wrap.appendChild(av);
-      wrap.appendChild(nm);
+      wrap.appendChild(av); wrap.appendChild(nm);
       wrap.onclick = () => openProfileModal(uid, p.name);
     } else {
       wrap.style.background = 'rgba(255,255,255,0.02)';
       wrap.style.border = '2px dashed #2a7a73';
       
       const av = document.createElement('div');
-      av.style.width = '35px'; av.style.height = '35px'; av.style.borderRadius = '50%';
-      av.style.background = '#14504d';
-      av.style.display = 'flex'; av.style.alignItems = 'center'; av.style.justifyContent = 'center';
-      av.style.color = '#2a7a73'; av.style.fontSize = '20px';
+      av.style.cssText = 'width:35px;height:35px;border-radius:50%;background:#14504d;display:flex;align-items:center;justify-content:center;color:#2a7a73;font-size:20px;';
       av.textContent = '?';
       
       const nm = document.createElement('div');
-      nm.textContent = 'Empty'; 
-      nm.style.fontSize = '10px'; nm.style.marginTop = '4px'; nm.style.color = '#2a7a73';
+      nm.textContent = 'Empty'; nm.style.cssText = 'font-size:10px;margin-top:4px;color:#2a7a73;';
       
-      wrap.appendChild(av);
-      wrap.appendChild(nm);
+      wrap.appendChild(av); wrap.appendChild(nm);
     }
     top.appendChild(wrap);
   }
 }
 
 function openProfileModal(uid, name) {
-   if(uid === me.uid) return; // Don't message yourself
+   if(uid === me.uid) return; 
    db.ref('profiles/' + uid).once('value').then(s => {
        const p = s.val();
        const un = p ? p.username : 'unknown';
-       $('pmName').textContent = name;
-       $('pmId').textContent = '@' + un;
-       
-       if(p && p.photo) {
-           $('pmAv').style.backgroundImage = `url(${p.photo})`;
-           $('pmAv').textContent = '';
-       } else {
-           $('pmAv').style.backgroundImage = 'none';
-           $('pmAv').textContent = name[0].toUpperCase();
-       }
-       
-       $('pmMsgBtn').onclick = () => {
-           window.location.href = 'index.html?chat=' + un;
-       };
-       
+       $('pmName').textContent = name; $('pmId').textContent = '@' + un;
+       if(p && p.photo) { $('pmAv').style.backgroundImage = `url(${p.photo})`; $('pmAv').textContent = ''; } 
+       else { $('pmAv').style.backgroundImage = 'none'; $('pmAv').textContent = name[0].toUpperCase(); }
+       $('pmMsgBtn').onclick = () => { window.location.href = 'index.html?chat=' + un; };
        $('profModal').classList.remove('hidden');
    });
 }
@@ -361,7 +331,13 @@ function renderBoard() {
       let num;
       if (i % 2 === 0) { num = 100 - (i * 10) - j; } 
       else { num = 100 - (i * 10) - (9 - j); }
-      cell.textContent = num;
+      
+      // Add icons for snakes and ladders
+      let icon = '';
+      if (snakes[num]) icon = '🐍';
+      if (ladders[num]) icon = '🪜';
+      
+      cell.innerHTML = `<span>${num}</span>${icon ? `<span class="icon">${icon}</span>` : ''}`;
       if (num % 2 === 0) cell.classList.add('dark');
       cell.id = 'cell-' + num;
       board.appendChild(cell);
