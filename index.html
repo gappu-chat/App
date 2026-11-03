@@ -344,6 +344,29 @@ $('claimOut').onclick = () => { if(confirm("Logout karoge toh account hamesha ke
 let me = null, prof = null, chats = {}, blocked = {}, cur = null, mref = null, listRef = null, blkRef = null, presenceRef = null;
 let typingRef = null, presenceListenRef = null, seenListenRef = null, typingTO = null, replyTo = null, isChatPhoto = false;
 
+
+// --- Notification System ---
+let notifyAudio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+'9'.repeat(100)); // Silent placeholder for basic beep if needed
+
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+  }
+}
+
+function showLocalNotification(title, body) {
+  // In-app popup (Toast)
+  toast('💬 ' + title + ': ' + body);
+  
+  // System Notification (if allowed)
+  if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/134/134914.png' });
+  }
+}
+
+// Call permission request on login
+let notifReqDone = false;
+
 auth.onAuthStateChanged(async user => {
   [listRef, blkRef, presenceRef, mref, typingRef, presenceListenRef, seenListenRef].forEach(r => r && r.off()); 
   listRef = blkRef = presenceRef = mref = typingRef = presenceListenRef = seenListenRef = null;
@@ -377,6 +400,7 @@ $('claimGo').onclick = async () => {
 
 function enterApp() {
   screen('app'); applyTheme(); applyI18n(); showTab('Chats'); renderMe(); renderGames();
+  if(!notifReqDone) { requestNotifPermission(); notifReqDone = true; }
   
   presenceRef = db.ref('presence/' + me.uid);
   db.ref('.info/connected').on('value', snap => {
@@ -386,7 +410,26 @@ function enterApp() {
   });
 
   listRef = db.ref('userChats/' + me.uid);
-  listRef.on('value', s => { chats = s.val() || {}; renderList(); });
+  let prevChats = {};
+  listRef.on('value', s => { 
+      const newChats = s.val() || {}; 
+      
+      // Notification Logic
+      if(Object.keys(prevChats).length > 0) {
+          for(const uid in newChats) {
+              if(prevChats[uid] && newChats[uid].ts > prevChats[uid].ts && (!cur || cur.uid !== uid)) {
+                  // New message came in a different chat
+                  if(!cur || cur.uid !== uid) {
+                     showLocalNotification(newChats[uid].name, newChats[uid].last);
+                  }
+              }
+          }
+      }
+      
+      prevChats = newChats;
+      chats = newChats; 
+      renderList(); 
+  });
   
   // Check if URL has ?chat=username
   const urlParams = new URLSearchParams(window.location.search);
@@ -537,7 +580,13 @@ function openChat(uid, name, isGrp) {
     }
     
     mref = db.ref(baseRef + '/messages').limitToLast(100);
-    mref.on('child_added', s => addMsg(s.val(), s.key));
+    mref.on('child_added', s => {
+        const m = s.val();
+        addMsg(m, s.key);
+        if (m.from !== me.uid && Date.now() - (m.ts || 0) < 5000) {
+           showLocalNotification(cur.name, m.text || '[Photo]');
+        }
+    });
     
     if (!isGrp) {
       db.ref(baseRef + '/meta/' + me.uid).set({ seen: TS });
