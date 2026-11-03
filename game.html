@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="hi" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="google" content="notranslate">
+<title>Tapri to Tycoon</title>
+<style>
+:root{--bg:#0d2b2a;--card:#14504d;--brass:#e0b04a;--ink:#f5f1e8;--dim:#9fc2bd}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#1d6b66,var(--bg) 60%);background-attachment:fixed;color:var(--ink);font-family:Georgia,serif;display:flex;justify-content:center;user-select:none;-webkit-user-select:none}
+main{width:100%;max-width:440px;padding:14px 14px 90px}
+h1{font-size:30px;margin:12px 0 4px}
+p.sub{margin:0 0 22px;opacity:.75}
+input,button{font:inherit;border-radius:12px;border:2px solid var(--brass);padding:13px 14px;width:100%;touch-action:manipulation}
+input{background:var(--card);color:var(--ink);margin-bottom:10px;user-select:text;-webkit-user-select:text}
+input::placeholder{color:#a9c4c0}
+button{background:var(--brass);color:#1b1b14;font-weight:bold;margin-bottom:10px;cursor:pointer}
+button.alt{background:transparent;color:var(--brass)}
+button:disabled{opacity:.35}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.hidden{display:none}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{margin:0}
+.tabs button.on{background:var(--brass);color:#1b1b14}
+.tabs button:not(.on){background:transparent;color:var(--brass)}
+.msg{min-height:22px;color:var(--brass);text-align:center;margin:4px 0;font-size:14px}
+.top{display:flex;gap:10px;align-items:center}
+.top .mini{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle,#2a8a82,#103f3c);border:2px solid var(--brass);overflow:hidden;flex-shrink:0}
+.top .t{flex:1;min-width:0}
+.top b{font-size:17px}
+.bar{height:9px;border-radius:6px;background:#0b2f2d;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--brass);width:0;transition:width .4s}
+.lv{font-size:12px;opacity:.85;margin-top:3px}
+.out{width:auto;padding:6px 10px;margin:0;font-size:13px}
+.bal{font-size:46px;text-align:center;color:var(--brass);font-weight:bold;margin:12px 0 0;line-height:1.1}
+.rate{text-align:center;opacity:.85;font-size:14px}
+.stage{position:relative;height:330px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;overflow:hidden}
+.glow{position:absolute;width:290px;height:290px;border-radius:50%;background:radial-gradient(circle,#2fb3a6 0%,#14504d 55%,transparent 72%);opacity:.8}
+.mwrap{position:relative;width:260px;height:260px;cursor:pointer;animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{transform:translateY(-6px)}}
+.mas{width:100%;height:100%;display:block}
+.mas.hit{animation:sq .18s}
+@keyframes sq{50%{transform:scale(1.09,.9)}}
+.eyes{animation:blink 4s infinite;transform-origin:100px 92px}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.open{display:none}
+.hit .open{display:inline}
+.hit .smile{display:none}
+.fl{position:absolute;pointer-events:none;font-weight:bold;font-size:26px;color:var(--brass);text-shadow:0 2px 4px #000a;animation:up .9s forwards}
+@keyframes up{to{transform:translateY(-120px);opacity:0}}
+.tapinfo{text-align:center;margin:2px 0 10px;font-size:15px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:2px solid #2a7a73;border-radius:16px;padding:12px;margin-bottom:10px}
+.item.lock{opacity:.5}
+.item.flash{animation:fl2 .5s}
+@keyframes fl2{30%{border-color:var(--brass);transform:scale(1.02)}}
+.ic{font-size:34px;width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.item .t{flex:1;min-width:0}
+.item h3{margin:0;font-size:18px}
+.item p{margin:2px 0 8px;font-size:13px;color:var(--dim)}
+.item button{margin:0;padding:9px 10px;font-size:15px}
+.item.on{border-color:var(--brass);background:#1b6a63}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:#0a2322;border-top:2px solid var(--brass)}
+nav div{width:100%;max-width:440px;display:flex}
+nav button{border:0;border-radius:0;background:transparent;color:var(--dim);margin:0;padding:14px 0;font-size:15px}
+nav button.on{color:var(--brass)}
+@media (prefers-reduced-motion:reduce){.mwrap,.eyes{animation:none}}
+</style>
+</head>
+<body>
+<main><a href="index.html" style="color:#e0b04a;display:block;margin-bottom:8px">← Chat par wapas</a>
+
+<section id="auth">
+  <h1>Tapri to Tycoon</h1>
+  <p class="sub">Chhoti si chai ki tapri se shuru karo, empire banao.</p>
+  <div class="tabs">
+    <button id="tabLogin" class="on">Login</button>
+    <button id="tabSignup">Naya account</button>
+  </div>
+  <input id="name" class="hidden" placeholder="Tumhara naam" maxlength="14">
+  <input id="email" type="email" placeholder="Email" autocomplete="email">
+  <input id="pass" type="password" placeholder="Password (kam se kam 6 akshar)" autocomplete="current-password">
+  <button id="go">Login karo</button>
+  <div class="msg" id="authMsg"></div>
+</section>
+
+<section id="game" class="hidden">
+  <div class="top">
+    <div class="mini" id="mini"></div>
+    <div class="t">
+      <b id="pname"></b>
+      <div class="bar"><i id="xpbar"></i></div>
+      <div class="lv" id="plvl"></div>
+    </div>
+    <button id="out" class="alt out">Logout</button>
+  </div>
+  <div class="bal" id="bal">0</div>
+  <div class="rate" id="rate"></div>
+  <div class="msg" id="msg"></div>
+
+  <div id="tapView">
+    <div class="stage" id="stage">
+      <div class="glow"></div>
+      <div class="mwrap" id="mwrap"></div>
+    </div>
+    <div class="tapinfo" id="tapinfo"></div>
+    <button id="tapUp"></button>
+  </div>
+  <div id="bizList" class="hidden"></div>
+  <div id="charList" class="hidden"></div>
+
+  <nav><div>
+    <button id="navTap" class="on">👆 Tap</button>
+    <button id="navBiz">🏪 Business</button>
+    <button id="navChar">🎭 Characters</button>
+  </div></nav>
+</section>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDFmI6YZIp7qKbgrgdr8VPLr1xkOXbGHb0",
+  authDomain: "auction-game-80e14.firebaseapp.com",
+  databaseURL: "https://auction-game-80e14-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "auction-game-80e14",
+  appId: "1:984901985057:web:8a5d78169ad75f72341460"
+};
+firebase.initializeApp(firebaseConfig);
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+const auth = firebase.auth(), db = firebase.database();
+const $ = id => document.getElementById(id);
+const fmt = n => Math.floor(n).toLocaleString('en-IN');
+const TS = firebase.database.ServerValue.TIMESTAMP;
+
+let offset = 0;
+db.ref('.info/serverTimeOffset').on('value', s => offset = s.val() || 0);
+const now = () => Date.now() + offset;
+
+// ---------- Game data ----------
+const BIZ = [
+  {id:'tapri',   n:'Chai Tapri',    e:'🍵', base:100,    rate:1,   lvl:1, c:'#e0b04a'},
+  {id:'dukaan',  n:'Kirana Dukaan', e:'🏪', base:1000,   rate:8,   lvl:2, c:'#4fb3e8'},
+  {id:'factory', n:'Factory',       e:'🏭', base:12000,  rate:60,  lvl:4, c:'#e4573d'},
+  {id:'company', n:'Company',       e:'🏢', base:150000, rate:500, lvl:7, c:'#9b7bff'}
+];
+const CH = [
+  {id:'raju',  n:'Raju Chaiwala',   lvl:1,  price:0,      skill:'Chai Tapri ki kamai +25%',           fx:{tapri:1.25},         skin:'#f2c28b', cloth:'#e4573d'},
+  {id:'munim', n:'Munim Ji',        lvl:3,  price:3000,   skill:'Saari kamai +10%',                   fx:{all:1.1},            skin:'#e8b07a', cloth:'#4fb3e8'},
+  {id:'neha',  n:'Neha Negotiator', lvl:5,  price:15000,  skill:'Har kharid 10% sasti',               fx:{disc:0.9},           skin:'#f0bf94', cloth:'#9b7bff'},
+  {id:'baba',  n:'Lucky Baba',      lvl:8,  price:80000,  skill:'Saari kamai +25%',                   fx:{all:1.25},           skin:'#d9a06b', cloth:'#5b3fb5'},
+  {id:'rani',  n:'Boss Rani',       lvl:12, price:400000, skill:'Saari kamai +50%, kharid 10% sasti', fx:{all:1.5, disc:0.9},  skin:'#f5cba0', cloth:'#e0508a'}
+];
+
+// ---------- Character drawing (SVG) ----------
+const ACC = {
+  raju:  {back:'', front:'<path d="M42 78 Q100 -8 158 78 Q100 60 42 78Z" fill="#f28c28"/><circle cx="100" cy="40" r="9" fill="#e0b04a"/>'},
+  munim: {back:'', front:'<path d="M52 68 Q100 18 148 68 Z" fill="#fff"/><g fill="none" stroke="#222" stroke-width="4"><circle cx="78" cy="92" r="17"/><circle cx="122" cy="92" r="17"/><path d="M95 92h10"/></g>'},
+  neha:  {back:'<path d="M32 105 Q28 18 100 22 Q172 18 168 105 L172 175 L28 175Z" fill="#2b1b12"/>', front:'<path d="M44 88 Q100 18 156 88 Q100 56 44 88Z" fill="#2b1b12"/><circle cx="100" cy="64" r="4.5" fill="#d62828"/>'},
+  baba:  {back:'', front:'<path d="M38 76 L100 -14 L162 76 Q100 58 38 76Z" fill="#5b3fb5"/><text x="92" y="48" font-size="22">⭐</text><path d="M55 132 Q100 218 145 132 Q100 158 55 132Z" fill="#eee"/>'},
+  rani:  {back:'<path d="M32 105 Q28 18 100 22 Q172 18 168 105 L172 175 L28 175Z" fill="#3a2418"/>', front:'<path d="M52 64 L62 26 L84 52 L100 20 L116 52 L138 26 L148 64Z" fill="#e0b04a"/>'}
+};
+function mascot(c) {
+  const a = ACC[c.id];
+  return '<svg viewBox="0 0 200 200" class="mas">' + a.back +
+    '<ellipse cx="100" cy="178" rx="56" ry="36" fill="' + c.cloth + '"/>' +
+    '<circle cx="100" cy="95" r="62" fill="' + c.skin + '"/>' +
+    '<circle cx="64" cy="112" r="11" fill="#ff8aa0" opacity=".5"/><circle cx="136" cy="112" r="11" fill="#ff8aa0" opacity=".5"/>' +
+    '<g class="eyes"><ellipse cx="78" cy="92" rx="8" ry="11" fill="#2b1b12"/><ellipse cx="122" cy="92" rx="8" ry="11" fill="#2b1b12"/>' +
+    '<circle cx="81" cy="88" r="3" fill="#fff"/><circle cx="125" cy="88" r="3" fill="#fff"/></g>' +
+    '<path class="smile" d="M80 120 Q100 138 120 120" stroke="#2b1b12" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+    '<ellipse class="open" cx="100" cy="126" rx="14" ry="12" fill="#7a1f1f"/>' +
+    a.front + '</svg>';
+}
+
+// ---------- Maths ----------
+const lvlOf = d => 1 + Math.floor((d.xp || 0) / 50);
+const cnt = (d, id) => (d.businesses && d.businesses[id]) || 0;
+const chOf = d => CH.find(c => c.id === (d.active || 'raju')) || CH[0];
+const rateOf = d => {
+  const f = chOf(d).fx; let r = 0;
+  BIZ.forEach(b => r += cnt(d, b.id) * b.rate * (f[b.id] || 1));
+  return r * (f.all || 1);
+};
+const tapVal = d => Math.max(1, Math.round((1 + (d.tapLvl || 0)) * (chOf(d).fx.all || 1)));
+const tapCost = d => Math.ceil(50 * Math.pow(1.6, d.tapLvl || 0) * (chOf(d).fx.disc || 1));
+const cost = (d, b) => Math.ceil(b.base * Math.pow(1.15, cnt(d, b.id)) * (chOf(d).fx.disc || 1));
+const accrue = d => d.balance + rateOf(d) * Math.max(0, now() - d.lastUpdate) / 1000;
+
+// ---------- Login / Signup ----------
+let mode = 'login', pendingName = '';
+function setMode(m) {
+  mode = m;
+  $('tabLogin').classList.toggle('on', m === 'login');
+  $('tabSignup').classList.toggle('on', m === 'signup');
+  $('name').classList.toggle('hidden', m === 'login');
+  $('go').textContent = m === 'login' ? 'Login karo' : 'Account banao';
+  $('authMsg').textContent = '';
+}
+$('tabLogin').onclick = () => setMode('login');
+$('tabSignup').onclick = () => setMode('signup');
+const ERR = {
+  'auth/invalid-credential': 'Email ya password galat hai.',
+  'auth/wrong-password': 'Email ya password galat hai.',
+  'auth/user-not-found': 'Ye account nahi mila. Pehle "Naya account" banao.',
+  'auth/email-already-in-use': 'Is email se account pehle se hai. Login karo.',
+  'auth/weak-password': 'Password kam se kam 6 akshar ka rakho.',
+  'auth/invalid-email': 'Email sahi likho.',
+  'auth/network-request-failed': 'Internet check karo.'
+};
+$('go').onclick = async () => {
+  const email = $('email').value.trim(), pass = $('pass').value;
+  $('authMsg').textContent = '';
+  if (!email || !pass) { $('authMsg').textContent = 'Email aur password dono bharo.'; return; }
+  try {
+    if (mode === 'signup') {
+      pendingName = $('name').value.trim();
+      if (!pendingName) { $('authMsg').textContent = 'Apna naam likho.'; return; }
+      await auth.createUserWithEmailAndPassword(email, pass);
+    } else {
+      await auth.signInWithEmailAndPassword(email, pass);
+    }
+  } catch (e) { $('authMsg').textContent = ERR[e.code] || 'Kuch gadbad hui: ' + e.code; }
+};
+$('out').onclick = async () => { await flush(); auth.signOut(); };
+
+// ---------- Tabs ----------
+function showTab(t) {
+  ['tap', 'biz', 'char'].forEach(x => {
+    $(x + 'View' in window ? x : x);
+  });
+  $('tapView').classList.toggle('hidden', t !== 'tap');
+  $('bizList').classList.toggle('hidden', t !== 'biz');
+  $('charList').classList.toggle('hidden', t !== 'char');
+  $('navTap').classList.toggle('on', t === 'tap');
+  $('navBiz').classList.toggle('on', t === 'biz');
+  $('navChar').classList.toggle('on', t === 'char');
+}
+$('navTap').onclick = () => showTab('tap');
+$('navBiz').onclick = () => showTab('biz');
+$('navChar').onclick = () => showTab('char');
+
+// ---------- Game ----------
+let uref = null, u = null, first = true, lastLvl = 1, ticker = null, flusher = null;
+let pending = 0, sig = '', lastChar = '';
+
+auth.onAuthStateChanged(async user => {
+  if (uref) { uref.off(); uref = null; }
+  clearInterval(ticker); clearInterval(flusher);
+  u = null; first = true; pending = 0; sig = ''; lastChar = '';
+  if (!user) { $('game').classList.add('hidden'); $('auth').classList.remove('hidden'); return; }
+  uref = db.ref('users/' + user.uid);
+  const snap = await uref.once('value');
+  if (!snap.exists()) {
+    await uref.set({
+      name: pendingName || (user.email || 'Player').split('@')[0],
+      balance: 500, xp: 0, tapLvl: 0, businesses: { tapri: 1 },
+      chars: { raju: true }, active: 'raju', lastUpdate: TS
+    });
+  }
+  $('auth').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  showTab('tap');
+  uref.on('value', s => {
+    u = s.val();
+    if (!u) return;
+    if (first) {
+      first = false; lastLvl = lvlOf(u);
+      const e = rateOf(u) * Math.max(0, now() - u.lastUpdate) / 1000;
+      if (e >= 1) say('Wapas aane par ' + fmt(e) + ' coins kamaye! 💰');
+    } else if (lvlOf(u) > lastLvl) {
+      lastLvl = lvlOf(u);
+      say('Level ' + lastLvl + ' ho gaya! 🎉 Naya kuch khul gaya.');
+    }
+    render();
+  });
+  ticker = setInterval(tick, 150);
+  flusher = setInterval(flush, 1500);
+});
+
+function say(t) { $('msg').textContent = t; }
+
+function flush() {
+  if (!pending || !uref) return Promise.resolve();
+  const n = pending; pending = 0;
+  return uref.transaction(d => {
+    if (!d) return;
+    d.balance = accrue(d) + n * tapVal(d);
+    d.xp = (d.xp || 0) + n * 0.2;
+    d.lastUpdate = TS;
+    return d;
+  });
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+
+function tick() {
+  if (!u) return;
+  const bal = accrue(u) + pending * tapVal(u);
+  $('bal').textContent = '🪙 ' + fmt(bal);
+  document.querySelectorAll('[data-cost]').forEach(b => b.disabled = bal < Number(b.dataset.cost));
+}
+
+// ---------- Tapping ----------
+const stage = $('stage');
+stage.addEventListener('pointerdown', e => {
+  if (!u) return;
+  e.preventDefault();
+  pending++;
+  const m = stage.querySelector('.mas');
+  if (m) { m.classList.remove('hit'); void m.offsetWidth; m.classList.add('hit'); setTimeout(() => m.classList.remove('hit'), 180); }
+  const r = stage.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'fl';
+  el.textContent = (Math.random() < .35 ? '❤️' : '🪙') + ' +' + tapVal(u);
+  el.style.left = (e.clientX - r.left - 30 + (Math.random() * 30 - 15)) + 'px';
+  el.style.top = (e.clientY - r.top - 20) + 'px';
+  stage.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+  if (navigator.vibrate) navigator.vibrate(8);
+});
+
+$('tapUp').onclick = () => {
+  flush().then(() => uref.transaction(d => {
+    if (!d) return;
+    const bal = accrue(d), c = tapCost(d);
+    if (bal < c) return;
+    d.balance = bal - c; d.tapLvl = (d.tapLvl || 0) + 1; d.xp = (d.xp || 0) + 10; d.lastUpdate = TS;
+    return d;
+  }, (err, ok) => { if (!ok) say('Coins kam hain.'); }));
+};
+
+// ---------- Render ----------
+function render() {
+  const ch = chOf(u), lv = lvlOf(u);
+  $('pname').textContent = u.name;
+  $('plvl').textContent = 'Level ' + lv + '  |  ' + Math.floor((u.xp || 0) % 50) + '/50 XP  |  ' + ch.n;
+  $('xpbar').style.width = (((u.xp || 0) % 50) / 50 * 100) + '%';
+  $('rate').textContent = '+' + fmt(rateOf(u)) + ' coins har second';
+  $('tapinfo').textContent = 'Character pe tap karo: +' + tapVal(u) + ' coins har tap';
+  $('tapUp').textContent = 'Tap power badhao: ' + fmt(tapCost(u)) + ' coins';
+  $('tapUp').dataset.cost = tapCost(u);
+
+  if (lastChar !== ch.id) {
+    lastChar = ch.id;
+    $('mwrap').innerHTML = mascot(ch);
+    $('mini').innerHTML = mascot(ch);
+  }
+
+  const s = [lv, u.active, JSON.stringify(u.businesses), JSON.stringify(u.chars)].join('|');
+  if (s !== sig) {
+    sig = s;
+    $('bizList').innerHTML = BIZ.map(b => {
+      const n = cnt(u, b.id), locked = lv < b.lvl;
+      const per = b.rate * (ch.fx[b.id] || 1) * (ch.fx.all || 1) * n;
+      return '<div class="item' + (locked ? ' lock' : '') + '" id="b-' + b.id + '">' +
+        '<div class="ic" style="background:' + b.c + '33">' + b.e + '</div>' +
+        '<div class="t"><h3>' + b.n + '</h3><p>' + (locked ? 'Level ' + b.lvl + ' pe khulega' : 'Tumhare paas: ' + n + '  |  ' + fmt(per) + '/sec') + '</p>' +
+        (locked ? '' : '<button data-cost="' + cost(u, b) + '" onclick="buy(\'' + b.id + '\')">Kharido: ' + fmt(cost(u, b)) + '</button>') +
+        '</div></div>';
+    }).join('');
+
+    $('charList').innerHTML = CH.map(c => {
+      const owned = u.chars && u.chars[c.id], avail = owned || lv >= c.lvl, on = (u.active || 'raju') === c.id;
+      let btn;
+      if (on) btn = '<button disabled>Abhi active ✅</button>';
+      else if (avail) btn = '<button onclick="pick(\'' + c.id + '\')">Chuno</button>';
+      else btn = '<button class="alt" data-cost="' + c.price + '" onclick="payChar(\'' + c.id + '\')">Abhi kholo: ' + fmt(c.price) + '</button>';
+      return '<div class="item' + (on ? ' on' : '') + (avail ? '' : ' lock') + '">' +
+        '<div class="ic" style="background:#ffffff22">' + mascot(c) + '</div>' +
+        '<div class="t"><h3>' + c.n + '</h3><p>' + c.skill + (avail ? '' : '<br>Level ' + c.lvl + ' pe free, ya coins dekar abhi') + '</p>' + btn + '</div></div>';
+    }).join('');
+  }
+  tick();
+}
+
+function buy(id) {
+  say('');
+  flush().then(() => uref.transaction(d => {
+    if (!d) return;
+    const b = BIZ.find(x => x.id === id);
+    if (lvlOf(d) < b.lvl) return;
+    const bal = accrue(d), c = cost(d, b);
+    if (bal < c) return;
+    d.balance = bal - c;
+    d.businesses = d.businesses || {};
+    d.businesses[id] = cnt(d, id) + 1;
+    d.xp = (d.xp || 0) + 20;
+    d.lastUpdate = TS;
+    return d;
+  }, (err, ok) => {
+    if (!ok) { say('Coins kam hain, thoda ruko.'); return; }
+    const el = $('b-' + id); if (el) el.classList.add('flash');
+  }));
+}
+
+function pick(id) {
+  flush().then(() => uref.transaction(d => {
+    if (!d) return;
+    const c = CH.find(x => x.id === id);
+    if (!(d.chars && d.chars[id]) && lvlOf(d) < c.lvl) return;
+    d.balance = accrue(d); d.lastUpdate = TS;
+    d.chars = d.chars || {}; d.chars[id] = true; d.active = id;
+    return d;
+  }));
+}
+
+function payChar(id) {
+  flush().then(() => uref.transaction(d => {
+    if (!d) return;
+    const c = CH.find(x => x.id === id), bal = accrue(d);
+    if (bal < c.price) return;
+    d.balance = bal - c.price; d.lastUpdate = TS;
+    d.chars = d.chars || {}; d.chars[id] = true; d.active = id;
+    return d;
+  }, (err, ok) => { if (!ok) say('Itne coins nahi hain abhi.'); }));
+}
+</script>
+</body>
+</html>

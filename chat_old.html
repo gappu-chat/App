@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="hi" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>Gappu Chat</title>
+<style>
+:root{--bg:#0d2b2a;--card:#14504d;--brass:#e0b04a;--ink:#f5f1e8;--dim:#9fc2bd}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#1d6b66,var(--bg) 60%);background-attachment:fixed;color:var(--ink);font-family:Georgia,serif;display:flex;justify-content:center}
+.w{width:100%;max-width:440px;padding:16px 14px 90px}
+h1{font-size:30px;margin:12px 0 4px}
+h2{margin:6px 0 12px}
+p.sub{margin:0 0 20px;opacity:.75}
+input,button{font:inherit;border-radius:12px;border:2px solid var(--brass);padding:13px 14px;width:100%}
+input{background:var(--card);color:var(--ink);margin-bottom:10px}
+input::placeholder{color:#a9c4c0}
+button{background:var(--brass);color:#1b1b14;font-weight:bold;margin-bottom:10px;cursor:pointer}
+button.alt{background:transparent;color:var(--brass)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.hidden{display:none!important}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{margin:0}
+.tabs button.on{background:var(--brass);color:#1b1b14}
+.tabs button:not(.on){background:transparent;color:var(--brass)}
+.msg{min-height:22px;color:var(--brass);text-align:center;margin:6px 0;font-size:14px}
+.row{display:flex;gap:12px;align-items:center;background:var(--card);border:2px solid #2a7a73;border-radius:16px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.av{width:46px;height:46px;border-radius:50%;background:var(--brass);color:#1b1b14;font-weight:bold;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .t{flex:1;min-width:0}
+.row b{display:block}
+.row small{display:block;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{text-align:center;color:var(--dim);margin:30px 10px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:#0a2322;border-top:2px solid var(--brass)}
+nav div{width:100%;max-width:440px;display:flex}
+nav button{border:0;border-radius:0;background:transparent;color:var(--dim);margin:0;padding:14px 0;font-size:15px}
+nav button.on{color:var(--brass)}
+#chat{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;background:var(--bg);max-width:440px;margin:0 auto;height:100dvh}
+.ch{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:2px solid var(--brass);background:#0a2322}
+.ch button{width:auto;margin:0;padding:8px 14px}
+#msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.b{max-width:78%;padding:9px 12px;border-radius:16px;word-wrap:break-word;white-space:pre-wrap}
+.b small{display:block;font-size:11px;opacity:.65;margin-top:3px;text-align:right}
+.b.me{align-self:flex-end;background:var(--brass);color:#1b1b14;border-bottom-right-radius:4px}
+.b.th{align-self:flex-start;background:var(--card);border-bottom-left-radius:4px}
+.bar{display:flex;gap:8px;padding:10px;border-top:2px solid var(--brass);background:#0a2322}
+.bar input{margin:0;flex:1}
+.bar button{width:auto;margin:0}
+.card{background:var(--card);border:2px solid #2a7a73;border-radius:16px;padding:16px;margin-bottom:10px}
+.big{font-size:22px;color:var(--brass);margin:6px 0}
+</style>
+</head>
+<body>
+
+<div class="w" id="auth">
+  <h1>Gappu Chat</h1>
+  <p class="sub">Dosto se ID search karke chat karo, free.</p>
+  <div class="tabs">
+    <button id="tabLogin" class="on">Login</button>
+    <button id="tabSignup">Naya account</button>
+  </div>
+  <input id="email" type="email" placeholder="Email" autocomplete="email">
+  <input id="pass" type="password" placeholder="Password (kam se kam 6 akshar)" autocomplete="current-password">
+  <button id="go">Login karo</button>
+  <div class="msg" id="authMsg"></div>
+</div>
+
+<div class="w hidden" id="claim">
+  <h1>Apni ID chuno</h1>
+  <p class="sub">Dost tumhe isi ID se dhundhenge. Baad mein badal nahi sakte.</p>
+  <input id="cname" placeholder="Tumhara naam" maxlength="20">
+  <input id="cun" placeholder="User ID (a-z, 0-9, _ , 3 se 15)" maxlength="15" autocapitalize="none">
+  <button id="claimGo">ID pakki karo</button>
+  <button id="claimOut" class="alt">Logout</button>
+  <div class="msg" id="claimMsg"></div>
+</div>
+
+<div class="w hidden" id="app">
+  <div id="vChats">
+    <h2>💬 Chats</h2>
+    <input id="q" placeholder="User ID search karo" autocapitalize="none">
+    <div id="results"></div>
+    <div id="list"></div>
+  </div>
+  <div id="vGames" class="hidden">
+    <h2>🎮 Games</h2>
+    <div class="card"><div class="big">Jaldi aa raha hai</div>Yahan dosto ke saath khelne wale games aayenge.</div>
+  </div>
+  <div id="vMe" class="hidden">
+    <h2>👤 Profile</h2>
+    <div class="card"><div class="big" id="meName"></div><div id="meUn"></div></div>
+    <p class="sub">Apni ID dost ko bhejo, wo search karke tumse chat kar sakte hain.</p>
+    <button id="out" class="alt">Logout</button>
+  </div>
+  <nav><div>
+    <button id="nChats" class="on">💬 Chats</button>
+    <button id="nGames">🎮 Games</button>
+    <button id="nMe">👤 Profile</button>
+  </div></nav>
+</div>
+
+<div id="chat" class="hidden">
+  <div class="ch"><button id="back" class="alt">←</button><b id="chName"></b></div>
+  <div id="msgs"></div>
+  <div class="bar"><input id="txt" placeholder="Message likho" maxlength="1000"><button id="send">Bhejo</button></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDFmI6YZIp7qKbgrgdr8VPLr1xkOXbGHb0",
+  authDomain: "auction-game-80e14.firebaseapp.com",
+  databaseURL: "https://auction-game-80e14-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "auction-game-80e14",
+  appId: "1:984901985057:web:8a5d78169ad75f72341460"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth(), db = firebase.database();
+const $ = id => document.getElementById(id);
+const TS = firebase.database.ServerValue.TIMESTAMP;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function screen(id) {
+  ['auth', 'claim', 'app'].forEach(x => $(x).classList.toggle('hidden', x !== id));
+  $('chat').classList.add('hidden');
+}
+
+// ---------- Login ----------
+let mode = 'login';
+function setMode(m) {
+  mode = m;
+  $('tabLogin').classList.toggle('on', m === 'login');
+  $('tabSignup').classList.toggle('on', m === 'signup');
+  $('go').textContent = m === 'login' ? 'Login karo' : 'Account banao';
+  $('authMsg').textContent = '';
+}
+$('tabLogin').onclick = () => setMode('login');
+$('tabSignup').onclick = () => setMode('signup');
+const ERR = {
+  'auth/invalid-credential': 'Email ya password galat hai.',
+  'auth/wrong-password': 'Email ya password galat hai.',
+  'auth/user-not-found': 'Ye account nahi mila. Pehle "Naya account" banao.',
+  'auth/email-already-in-use': 'Is email se account pehle se hai. Login karo.',
+  'auth/weak-password': 'Password kam se kam 6 akshar ka rakho.',
+  'auth/invalid-email': 'Email sahi likho.',
+  'auth/network-request-failed': 'Internet check karo.'
+};
+$('go').onclick = async () => {
+  const email = $('email').value.trim(), pass = $('pass').value;
+  $('authMsg').textContent = '';
+  if (!email || !pass) { $('authMsg').textContent = 'Email aur password dono bharo.'; return; }
+  try {
+    if (mode === 'signup') await auth.createUserWithEmailAndPassword(email, pass);
+    else await auth.signInWithEmailAndPassword(email, pass);
+  } catch (e) { $('authMsg').textContent = ERR[e.code] || 'Kuch gadbad hui: ' + e.code; }
+};
+$('out').onclick = () => auth.signOut();
+$('claimOut').onclick = () => auth.signOut();
+
+// ---------- Profile / ID ----------
+let me = null, prof = null, chats = {}, cur = null, mref = null, listRef = null;
+
+auth.onAuthStateChanged(async user => {
+  if (listRef) { listRef.off(); listRef = null; }
+  closeChat();
+  me = user; prof = null; chats = {};
+  if (!user) { screen('auth'); return; }
+  const s = await db.ref('profiles/' + user.uid).once('value');
+  if (s.exists()) { prof = s.val(); enterApp(); } else screen('claim');
+});
+
+$('claimGo').onclick = async () => {
+  const name = $('cname').value.trim(), un = $('cun').value.trim().toLowerCase();
+  const m = $('claimMsg'); m.textContent = '';
+  if (!name) { m.textContent = 'Apna naam likho.'; return; }
+  if (!/^[a-z0-9_]{3,15}$/.test(un)) { m.textContent = 'ID mein sirf a-z, 0-9, _ ho, 3 se 15 akshar.'; return; }
+  try { await db.ref('usernames/' + un).set(me.uid); }
+  catch (e) { m.textContent = 'Ye ID koi aur le chuka hai. Dusri try karo.'; return; }
+  prof = { name, username: un };
+  await db.ref('profiles/' + me.uid).set(prof);
+  enterApp();
+};
+
+function enterApp() {
+  screen('app');
+  $('meName').textContent = prof.name;
+  $('meUn').textContent = '@' + prof.username;
+  showTab('Chats');
+  listRef = db.ref('userChats/' + me.uid);
+  listRef.on('value', s => { chats = s.val() || {}; renderList(); });
+}
+
+// ---------- Tabs ----------
+function showTab(t) {
+  ['Chats', 'Games', 'Me'].forEach(x => {
+    $('v' + x).classList.toggle('hidden', x !== t);
+    $('n' + x).classList.toggle('on', x === t);
+  });
+}
+$('nChats').onclick = () => showTab('Chats');
+$('nGames').onclick = () => showTab('Games');
+$('nMe').onclick = () => showTab('Me');
+
+// ---------- Chat list & search ----------
+function personRow(uid, name, sub) {
+  const r = el('div', 'row');
+  r.appendChild(el('div', 'av', (name || '?')[0].toUpperCase()));
+  const t = el('div', 't');
+  t.appendChild(el('b', '', name));
+  t.appendChild(el('small', '', sub));
+  r.appendChild(t);
+  r.onclick = () => openChat(uid, name);
+  return r;
+}
+
+function renderList() {
+  const box = $('list'); box.innerHTML = '';
+  if ($('q').value.trim()) return;
+  const arr = Object.entries(chats).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+  if (!arr.length) { box.appendChild(el('div', 'empty', 'Abhi koi chat nahi. Upar dost ki ID search karo.')); return; }
+  arr.forEach(([uid, c]) => box.appendChild(personRow(uid, c.name, c.last || '')));
+}
+
+let timer = null;
+$('q').oninput = () => {
+  clearTimeout(timer);
+  timer = setTimeout(search, 300);
+};
+async function search() {
+  const q = $('q').value.trim().toLowerCase().replace(/^@/, '');
+  const box = $('results'); box.innerHTML = '';
+  if (!q) { $('list').classList.remove('hidden'); renderList(); return; }
+  $('list').classList.add('hidden');
+  try {
+    const s = await db.ref('usernames').orderByKey().startAt(q).endAt(q + '\uf8ff').limitToFirst(10).once('value');
+    const found = [];
+    s.forEach(c => { if (c.val() !== me.uid) found.push([c.key, c.val()]); });
+    if (!found.length) { box.appendChild(el('div', 'empty', 'Is ID ka koi user nahi mila.')); return; }
+    for (const [un, uid] of found) {
+      const p = (await db.ref('profiles/' + uid).once('value')).val();
+      if (p) box.appendChild(personRow(uid, p.name, '@' + un));
+    }
+  } catch (e) { box.appendChild(el('div', 'empty', 'Search nahi ho paya. Rules check karo.')); }
+}
+
+// ---------- Chat ----------
+const cidOf = other => [me.uid, other].sort().join('_');
+
+function openChat(uid, name) {
+  cur = { uid, name, cid: cidOf(uid) };
+  $('chName').textContent = name;
+  $('msgs').innerHTML = '';
+  $('chat').classList.remove('hidden');
+  mref = db.ref('chats/' + cur.cid + '/messages').limitToLast(100);
+  mref.on('child_added', s => addMsg(s.val()));
+  $('txt').focus();
+}
+function closeChat() {
+  if (mref) { mref.off(); mref = null; }
+  cur = null;
+  $('chat').classList.add('hidden');
+  $('q').value = ''; $('results').innerHTML = ''; $('list').classList.remove('hidden');
+  if (me && prof) renderList();
+}
+$('back').onclick = closeChat;
+
+function addMsg(m) {
+  if (!m) return;
+  const b = el('div', 'b ' + (m.from === me.uid ? 'me' : 'th'), m.text);
+  const t = m.ts ? new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  b.appendChild(el('small', '', t));
+  const box = $('msgs');
+  box.appendChild(b);
+  box.scrollTop = box.scrollHeight;
+}
+
+function send() {
+  const text = $('txt').value.trim();
+  if (!text || !cur) return;
+  $('txt').value = '';
+  const key = db.ref('chats/' + cur.cid + '/messages').push().key;
+  const last = text.slice(0, 60), u = {};
+  u['chats/' + cur.cid + '/messages/' + key] = { from: me.uid, text, ts: TS };
+  u['userChats/' + me.uid + '/' + cur.uid] = { name: cur.name, last, ts: TS };
+  u['userChats/' + cur.uid + '/' + me.uid] = { name: prof.name, last, ts: TS };
+  db.ref().update(u).catch(() => { $('txt').value = text; });
+}
+$('send').onclick = send;
+$('txt').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+</script>
+</body>
+</html>
