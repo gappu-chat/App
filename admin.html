@@ -50,6 +50,7 @@ button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
     <button id="tabDash" class="on">📊 Dashboard</button>
     <button id="tabUsers">👥 Users</button>
     <button id="tabReports">🚨 Reports</button>
+    <button id="tabLive">🔴 Live Games</button>
     <button id="tabHistory">📜 History</button>
     <button id="tabGames">🎮 Search Game</button>
   </div>
@@ -84,6 +85,9 @@ button.sm{padding:6px 10px;width:auto;font-size:0.8rem;margin:0}
   </div>
 
   <!-- Games View -->
+  <div id="vLive" class="hidden">
+    <div id="liveList"></div>
+  </div>
   <div id="vHistory" class="hidden">
     <div id="historyList"></div>
   </div>
@@ -157,7 +161,7 @@ $('logoutBtn').onclick = () => auth.signOut();
 
 // --- Tabs Logic ---
 function showTab(t) {
-  ['Dash', 'Users', 'Reports', 'History', 'Games'].forEach(x => {
+  ['Dash', 'Users', 'Reports', 'Live', 'History', 'Games'].forEach(x => {
     $('v' + x).classList.toggle('hidden', x !== t);
     $('tab' + x).classList.toggle('on', x === t);
   });
@@ -165,6 +169,7 @@ function showTab(t) {
 $('tabDash').onclick = () => showTab('Dash');
 $('tabUsers').onclick = () => { showTab('Users'); loadUsers(); };
 $('tabReports').onclick = () => { showTab('Reports'); loadReports(); };
+$('tabLive').onclick = () => { showTab('Live'); loadLiveGames(); };
 $('tabHistory').onclick = () => { showTab('History'); loadGameHistory(); };
 $('tabGames').onclick = () => showTab('Games');
 
@@ -354,6 +359,41 @@ window.viewGameDetails = async (type, gid) => {
   showTab('Games');
   $('searchGameId').value = gid;
 };
+
+
+async function loadLiveGames() {
+  const box = $('liveList'); box.innerHTML = 'Fetching live games...';
+  box.innerHTML = '';
+  
+  let liveGames = [];
+  
+  // Fetch SL Games
+  const slSnap = await db.ref('sl_games').orderByChild('status').equalTo('playing').once('value');
+  slSnap.forEach(c => liveGames.push({ type: 'Snake', gid: c.key, ...c.val() }));
+  
+  // Fetch Quiz Games
+  const qzSnap = await db.ref('quiz_games').orderByChild('status').equalTo('playing').once('value');
+  qzSnap.forEach(c => liveGames.push({ type: 'Quiz', gid: c.key, ...c.val() }));
+
+  if(liveGames.length === 0) {
+    box.innerHTML = '<p class="dim" style="text-align:center; margin-top:20px;">Abhi koi live game nahi chal raha hai.</p>';
+    return;
+  }
+
+  liveGames.forEach(g => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div>
+        <b style="color:var(--danger);">LIVE: ${g.type} Game</b><br>
+        <small class="dim">GID: <b>${g.gid}</b></small><br>
+        <small class="dim">Players: ${Object.keys(g.players || {}).length}/4</small>
+      </div>
+      <button class="sm warn" onclick="viewGameDetails('${g.type}', '${g.gid}')">Watch</button>
+    `;
+    box.appendChild(row);
+  });
+}
 
 // --- Game Search Logic ---
 $('searchGameBtn').onclick = async () => {
