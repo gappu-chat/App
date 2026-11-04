@@ -1,0 +1,14 @@
+:root{--bg:#0d2b2a;--bg2:#1d6b66;--card:#14504d;--acc:#e0b04a;--ink:#f5f1e8;--dim:#9fc2bd;--bar:#0a2322;--on:#1b1b14;--line:#2a7a73}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,var(--bg2),var(--bg) 60%);background-attachment:fixed;color:var(--ink);font-family:Georgia,serif;display:flex;justify-content:center}
+.w{width:100%;max-width:560px;padding:16px 14px 96px}
+h1{font-size:1.9rem;margin:12px 0 4px;color:var(--acc);text-align:center}
+p.sub{margin:0 0 20px;opacity:.75;text-align:center}
+input,button{font:inherit;border-radius:14px;border:2px solid var(--acc);padding:12px 14px;width:100%;box-sizing:border-box}
+input{background:var(--card);color:var(--ink);margin-bottom:10px}
+button{background:var(--acc);color:var(--on);font-weight:bold;margin-bottom:10px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc)}
+.hidden{display:none!important}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--bar);border-top:2px solid var(--acc);z-index:3}
+nav button{border:0;border-radius:0;background:transparent;color:var(--dim);padding:8px 0;font-size:.8rem;display:flex;flex-direction:column;align-items:center}
+nav button.on{color:var(--acc)}
