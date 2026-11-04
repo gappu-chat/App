@@ -478,7 +478,13 @@ $('nGames').onclick = () => showTab('Games');
 $('nEvent').onclick = () => { showTab('Event'); renderEvent(); };
 $('nMe').onclick = () => { showTab('Me'); clearInterval(eventTimer); };
 $('nChats').onclick = () => { showTab('Chats'); clearInterval(eventTimer); };
-$('nGames').onclick = () => { showTab('Games'); clearInterval(eventTimer); };
+$('nGames').onclick = () => { 
+  if((prof.coins || 0) < 50) {
+     toast('Game khelne ke liye kam se kam 50 Coins chahiye. Pehle jeeto ya kharido!');
+     return;
+  }
+  showTab('Games'); clearInterval(eventTimer); 
+};
 $('nMe').onclick = () => showTab('Me');
 
 // ---------- Group Chat ----------

@@ -376,6 +376,11 @@ $('startBtn').onclick = async () => {
    const pCount = Object.keys(gameData.players || {}).length;
    if(pCount < 2) { alert("Kam se kam 2 players chahiye!"); return; }
    await gameRef.update({ status: 'playing', qIndex: 0, answers: {}, qStart: Date.now() });
+   // Deduct Entry Fee
+   const players = gameData.players || {};
+   for(let uid in players) {
+       db.ref('profiles/' + uid + '/coins').set(firebase.database.ServerValue.increment(-50));
+   }
 };
 
 $('nextBtn').onclick = async () => {
@@ -393,7 +398,7 @@ $('nextBtn').onclick = async () => {
            }
        }
        if (winnerUid) {
-           db.ref('profiles/' + winnerUid + '/coins').set(firebase.database.ServerValue.increment(100));
+           db.ref('profiles/' + winnerUid + '/coins').set(firebase.database.ServerValue.increment(200));
            db.ref('profiles/' + winnerUid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
        }
        

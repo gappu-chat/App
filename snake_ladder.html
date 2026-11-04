@@ -158,6 +158,12 @@ function joinRoom(gid) {
        if (pCount + 1 === 4) {
            updates.status = 'playing';
            updates.turn = Object.keys(players)[0] || me.uid;
+           
+           // Deduct Entry Fee (50 Coins)
+           for(let uid in players) {
+               db.ref('profiles/' + uid + '/coins').set(firebase.database.ServerValue.increment(-50));
+           }
+           db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(-50));
        }
     } else if (pCount === 4 && g.status === 'waiting') {
        updates.status = 'playing';
@@ -468,8 +474,8 @@ $('rollBtn').onclick = async () => {
      updates.winner = me.uid;
      updates.finishedAt = Date.now();
      
-     // Give Rewards
-     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(100));
+     // Give Rewards (200 Coins for Winner)
+     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(200));
      db.ref('profiles/' + me.uid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
      
      db.ref('sl_history').push({
