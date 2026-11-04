@@ -17,24 +17,38 @@
 </div>
 
 <div class="w hidden" id="app">
-  <h2 style="color:var(--acc); margin-top:20px;">Welcome to Gappu Chat</h2>
-  <p style="text-align:center; opacity:0.7;">Naya code ready hai! Ab hum ek-ek karke features add karenge.</p>
-  
-  <div class="card" style="margin-top:30px; text-align:center;">
-    <h3 style="color:var(--acc);">Chat Feature</h3>
-    <p>Yahan aapke chats dikhenge.</p>
+  <div id="vChats">
+    <h2 style="color:var(--acc);">Chats</h2>
+    <input id="q" placeholder="User ID search karo">
+    <div id="results"></div>
+    <div id="list"></div>
   </div>
-
-  <div class="card" style="text-align:center;">
-    <h3 style="color:var(--acc);">Games Feature</h3>
-    <p>Yahan aap games khel sakenge.</p>
+  <div id="vGames" class="hidden">
+    <h2 style="color:var(--acc);">Games</h2>
+    <p class="dim">Coming soon...</p>
   </div>
-
+  <div id="vMe" class="hidden">
+    <h2 style="color:var(--acc);">Profile</h2>
+    <p class="dim">Coming soon...</p>
+  </div>
   <nav>
     <button id="nChats" class="on">💬 Chats</button>
     <button id="nGames">🎮 Games</button>
     <button id="nMe">👤 Profile</button>
   </nav>
+</div>
+
+<div id="chat" class="hidden">
+  <div class="ch">
+    <button id="back" class="ic alt">←</button>
+    <div class="av" id="chAv"></div>
+    <b id="chName"></b>
+  </div>
+  <div id="msgs"></div>
+  <div class="bar">
+    <input id="txt" placeholder="Message likho..." maxlength="1000">
+    <button id="send" class="ic">➤</button>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
