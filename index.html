@@ -9,24 +9,38 @@
 <body>
 <div class="w" id="auth">
   <h1>Gappu Chat</h1>
-  <p class="sub">🎉 Free Chat • Free Games</p>
+  <p class="sub">🎉 Free Chat • Free Games • Zero Paisa</p>
   <input id="email" type="email" placeholder="Email">
   <input id="pass" type="password" placeholder="Password">
   <button id="go">Login</button>
-  <button id="guestBtn" class="alt">Guest Login</button>
+  <button id="guestBtn" class="alt">👤 Guest ban ke khelo</button>
 </div>
+
 <div class="w hidden" id="app">
-  <h2>Chats</h2>
-  <p>Naya Professional Structure Ready!</p>
+  <h2 style="color:var(--acc); margin-top:20px;">Welcome to Gappu Chat</h2>
+  <p style="text-align:center; opacity:0.7;">Naya code ready hai! Ab hum ek-ek karke features add karenge.</p>
+  
+  <div class="card" style="margin-top:30px; text-align:center;">
+    <h3 style="color:var(--acc);">Chat Feature</h3>
+    <p>Yahan aapke chats dikhenge.</p>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h3 style="color:var(--acc);">Games Feature</h3>
+    <p>Yahan aap games khel sakenge.</p>
+  </div>
+
   <nav>
-    <button id="nChats" class="on">Chats</button>
-    <button id="nGames">Games</button>
-    <button id="nMe">Profile</button>
+    <button id="nChats" class="on">💬 Chats</button>
+    <button id="nGames">🎮 Games</button>
+    <button id="nMe">👤 Profile</button>
   </nav>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase_config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
