@@ -129,6 +129,11 @@ auth.onAuthStateChanged(async user => {
           document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
           return;
       }
+      const checkProf = s.val();
+      if (checkProf.banned && checkProf.banType === 'game') {
+          document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
+          return;
+      }
       if (checkProf.banned && (checkProf.banType === 'permanent' || (checkProf.banType === '7days' && Date.now() < checkProf.banUntil))) {
           window.location.href = 'index.html'; // Redirect to main to show ban screen
           return;
@@ -398,7 +403,7 @@ $('nextBtn').onclick = async () => {
            }
        }
        if (winnerUid) {
-           db.ref('profiles/' + winnerUid + '/coins').set(firebase.database.ServerValue.increment(200));
+           db.ref('profiles/' + winnerUid + '/coins').set(firebase.database.ServerValue.increment(180));
            db.ref('profiles/' + winnerUid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
        }
        

@@ -124,6 +124,11 @@ auth.onAuthStateChanged(async user => {
           document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
           return;
       }
+      const checkProf = s.val();
+      if (checkProf.banned && checkProf.banType === 'game') {
+          document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
+          return;
+      }
       if (checkProf.banned && (checkProf.banType === 'permanent' || (checkProf.banType === '7days' && Date.now() < checkProf.banUntil))) {
           window.location.href = 'index.html'; // Redirect to main to show ban screen
           return;
@@ -159,11 +164,10 @@ function joinRoom(gid) {
            updates.status = 'playing';
            updates.turn = Object.keys(players)[0] || me.uid;
            
-           // Deduct Entry Fee (50 Coins)
+           // Deduct Entry Fee (50 Coins) - Only once per player
            for(let uid in players) {
                db.ref('profiles/' + uid + '/coins').set(firebase.database.ServerValue.increment(-50));
            }
-           db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(-50));
        }
     } else if (pCount === 4 && g.status === 'waiting') {
        updates.status = 'playing';
@@ -475,7 +479,7 @@ $('rollBtn').onclick = async () => {
      updates.finishedAt = Date.now();
      
      // Give Rewards (200 Coins for Winner)
-     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(200));
+     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(180));
      db.ref('profiles/' + me.uid + '/gamesWon').set(firebase.database.ServerValue.increment(1));
      
      db.ref('sl_history').push({

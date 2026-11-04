@@ -932,7 +932,7 @@ function renderMe() {
   card.appendChild(stats);
   b.appendChild(card);
   
-  [['✏️','editp',editProfile], ['🆔','chid',idSheet], ['✉️','email',emailSheet], ['📱','phone',phoneSheet],
+  [['🎁','Daily Bonus (20 Coins)', dailyBonus], ['✏️','editp',editProfile], ['🆔','chid',idSheet], ['✉️','email',emailSheet], ['📱','phone',phoneSheet],
    ['🔑','preset',resetPass], ['🎨','theme',themeSheet], ['🌐','lang',langSheet], ['🛡️','privacy',privacySheet],
    ['🚫','blist',blockSheet], ['📜','Privacy Policy', privacyPolicySheet], ['🗑️','Delete Account', deleteAccountSheet]].forEach(([i,k,f]) => {
     const r = el('div', 'row'); r.appendChild(el('div', 'ri', i)); r.appendChild(el('b', '', t(k))); r.onclick = f; b.appendChild(r);
@@ -1328,6 +1328,37 @@ function deleteAccountSheet() {
         btn.textContent = 'Haan, Account Delete Karo';
         btn.disabled = false;
       }
+    };
+    b.appendChild(btn);
+  });
+}
+
+
+function dailyBonus() {
+  const today = new Date().toDateString();
+  const lastClaim = LS('lastBonusDate');
+  if (lastClaim === today) {
+    toast('Aaj ka bonus le liya hai! Kal wapas aana.');
+    return;
+  }
+  
+  openSheet('Daily Bonus', b => {
+    const m = el('div', '', 'Aaj ka 20 Coins bonus claim karein?');
+    m.style.marginBottom = '15px'; m.style.textAlign = 'center';
+    b.appendChild(m);
+    
+    const btn = el('button', '', '🎁 Claim 20 Coins');
+    btn.onclick = async () => {
+      btn.textContent = 'Claiming...';
+      btn.disabled = true;
+      try {
+        await db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(20));
+        prof.coins = (prof.coins || 0) + 20;
+        LSset('lastBonusDate', today);
+        closeSheet();
+        toast('20 Coins mil gaye! 🎉');
+        renderMe();
+      } catch(e) { toast('Fail'); btn.disabled = false; btn.textContent = '🎁 Claim 20 Coins'; }
     };
     b.appendChild(btn);
   });

@@ -36,6 +36,19 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            
+firebase.auth().onAuthStateChanged(async user => {
+  if(user) {
+     const s = await db.ref('profiles/' + user.uid).once('value');
+     if(s.exists()) {
+         const p = s.val();
+         if(p.banned && p.banType === 'game') {
+             document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
+             return;
+         }
+     }
+  }
+});
 
 const emojis = ['🍎','🍌','🍇','🍓','🍒','🍑','🍉','🍍'];
 let cards = [];
