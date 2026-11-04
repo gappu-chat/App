@@ -109,7 +109,18 @@ auth.onAuthStateChanged(async user => {
   if(!user) { window.location.href='index.html'; return; }
   me = user;
   const s = await db.ref('profiles/'+me.uid).once('value');
-  if(s.exists()) { prof = s.val(); initGame(); }
+  if(s.exists()) { 
+      prof = s.val(); 
+      if(prof.banned && prof.banType === 'game') {
+          document.body.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; font-family:sans-serif;"><h1>⛔ BANNED</h1><p>Aapko games khelne se ban kar diya gaya hai.</p><a href="index.html" style="color:#e0b04a;">← Wapas jao</a></div>';
+          return;
+      }
+      if((prof.coins || 0) < 50) {
+          alert('Game khelne ke liye kam se kam 50 Coins chahiye!');
+          window.location.href='index.html'; return;
+      }
+      initGame(); 
+  }
 });
 
 async function initGame() {
@@ -119,6 +130,7 @@ async function initGame() {
   $('gidTxt').textContent = 'Room: ' + curGid;
   
   gameRef = db.ref('ludo_new_games/' + curGid);
+  db.ref('ludo_history').push({ gid: curGid, ts: Date.now() });
   
   // JOIN LOGIC
   const snap = await gameRef.once('value');
@@ -127,6 +139,8 @@ async function initGame() {
         status: 'waiting', admin: me.uid, turn: null, turnStart: Date.now(),
         players: { [me.uid]: { name: prof.name, color: 'red', tokens: [0,0,0,0] } }
      });
+     // Deduct entry fee for admin
+     db.ref('profiles/' + me.uid + '/coins').set(firebase.database.ServerValue.increment(-50));
   } else {
      const g = snap.val();
      if(g.status === 'waiting' && !g.players[me.uid]) {

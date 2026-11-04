@@ -395,7 +395,7 @@ $('claimGo').onclick = async () => {
   if (!name) { m.textContent = 'Naam likho.'; return; }
   if (!/^[a-z0-9_]{3,15}$/.test(un)) { m.textContent = t('badid'); return; }
   try { await db.ref('usernames/' + un).set(me.uid); } catch (e) { m.textContent = t('taken'); return; }
-  prof = { name, username: un, city, coins: 0, gamesWon: 0, guest: me.isAnonymous };
+  prof = { name, username: un, city, coins: 300, gamesWon: 0, guest: me.isAnonymous };
   await db.ref('profiles/' + me.uid).set(prof);
   enterApp();
 };

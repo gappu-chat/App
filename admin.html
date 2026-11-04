@@ -375,6 +375,10 @@ async function loadLiveGames() {
   const qzSnap = await db.ref('quiz_games').orderByChild('status').equalTo('playing').once('value');
   qzSnap.forEach(c => liveGames.push({ type: 'Quiz', gid: c.key, ...c.val() }));
 
+  // Fetch Ludo Games
+  const luSnap = await db.ref('ludo_new_games').orderByChild('status').equalTo('playing').once('value');
+  luSnap.forEach(c => liveGames.push({ type: 'Ludo', gid: c.key, ...c.val() }));
+
   if(liveGames.length === 0) {
     box.innerHTML = '<p class="dim" style="text-align:center; margin-top:20px;">Abhi koi live game nahi chal raha hai.</p>';
     return;
