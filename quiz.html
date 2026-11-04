@@ -313,6 +313,16 @@ function renderGame() {
      $('questionText').textContent = "🏆 " + gameData.players[winner].name + " Jeeta!";
      $('optionsBox').innerHTML = '';
      $('hostControls').classList.add('hidden');
+     
+     if(!document.getElementById('restartBtn')) {
+       const btn = document.createElement('button');
+       btn.id = 'restartBtn';
+       btn.className = 'alt';
+       btn.textContent = '🔄 Naya Game Khelo';
+       btn.style.marginTop = '20px';
+       btn.onclick = () => window.location.href = 'quiz.html';
+       $('optionsBox').appendChild(btn);
+     }
   }
 }
 

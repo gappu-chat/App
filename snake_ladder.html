@@ -405,6 +405,18 @@ function updateTurn() {
     $('rollBtn').disabled = true;
     clearInterval(turnInterval);
     $('timerTxt').textContent = '';
+    
+    // Show Restart Button
+    if(!document.getElementById('restartBtn')) {
+       const btn = document.createElement('button');
+       btn.id = 'restartBtn';
+       btn.className = 'alt';
+       btn.textContent = '🔄 Naya Game Khelo';
+       btn.style.marginTop = '10px';
+       btn.style.width = '100%';
+       btn.onclick = () => window.location.href = 'snake_ladder.html';
+       $('msgs').parentElement.appendChild(btn);
+    }
     return;
   }
   
