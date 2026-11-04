@@ -913,7 +913,7 @@ function renderGames() {
     c.appendChild(el('div', 'ge', e));
     const x = el('div', 'gt'); x.appendChild(el('b', '', n)); x.appendChild(el('small', '', t(d))); c.appendChild(x);
     const g = el('button', ok ? '' : 'off', ok ? t('play') : t('soon'));
-    g.disabled = !ok; if (ok) g.onclick = () => { if(n==='Tap Tycoon') location.href = 'game.html'; if(n==='Card Match') location.href = 'match.html'; if(n==='Ludo') location.href = 'ludo.html'; if(n==='Snakes & Ladders') location.href = 'snake_ladder.html'; if(n==='Quiz Battle') location.href = 'quiz.html'; };
+    g.disabled = !ok; if (ok) g.onclick = () => { if(n==='Tap Tycoon') location.href = 'game.html'; if(n==='Card Match') location.href = 'match.html'; if(n==='Ludo') { const gid = Math.floor(10000+Math.random()*90000).toString(); location.href = 'ludo.html?gid='+gid; } if(n==='Snakes & Ladders') location.href = 'snake_ladder.html'; if(n==='Quiz Battle') location.href = 'quiz.html'; };
     c.appendChild(g); b.appendChild(c);
   });
 }

@@ -5,62 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Real Ludo</title>
 <style>
-body{margin:0;background:#0d2b2a;color:#fff;font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow:hidden;}
-.header{width:100%;max-width:500px;display:flex;justify-content:space-between;padding:10px;box-sizing:border-box;background:#0a2322;border-bottom:2px solid #e0b04a;z-index:10;}
+body{margin:0;background:#0d2b2a;color:#fff;font-family:Georgia,serif;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.header{width:100%;display:flex;justify-content:space-between;padding:10px;box-sizing:border-box;background:#0a2322;border-bottom:2px solid #e0b04a;z-index:10;}
 a{color:#e0b04a;text-decoration:none;font-weight:bold;}
-.container{width:100%;max-width:500px;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;}
+.container{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px;box-sizing:border-box;overflow:hidden;}
 
-/* Ludo Board Styling */
-.board-wrapper{width:100%;aspect-ratio:1;background:#fff;border:4px solid #333;border-radius:8px;position:relative;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);box-shadow:0 10px 30px #0008;overflow:hidden;}
+/* Top Profiles */
+#topProfiles{display:flex;justify-content:space-between;width:100%;max-width:500px;margin-bottom:5px;}
+.p-box{display:flex;flex-direction:column;align-items:center;background:#14504d;padding:5px;border-radius:8px;width:22%;border:2px solid transparent;}
+.p-box.active{border-color:#e0b04a;box-shadow:0 0 10px #e0b04a;}
+.p-av{width:30px;height:30px;border-radius:50%;background:#ccc;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;color:#000;}
+.p-name{font-size:10px;margin-top:2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+
+/* Board */
+.board-wrapper{width:100%;max-width:450px;aspect-ratio:1;background:#fff;border:4px solid #333;border-radius:8px;position:relative;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);box-shadow:0 5px 15px #0008;overflow:hidden;}
 .cell{border:1px solid #ccc;position:relative;display:flex;align-items:center;justify-content:center;}
-.cell.safe::before{content:'★';color:#aaa;font-size:14px;}
+.cell.safe::before{content:'★';color:#aaa;font-size:10px;}
 
-/* Home Bases */
 .home{position:absolute;width:40%;height:40%;display:flex;align-items:center;justify-content:center;border-radius:8px;}
 .home.red{top:0;left:0;background:#ff4d4d;}
 .home.green{top:0;right:0;background:#2ecc71;}
 .home.yellow{bottom:0;right:0;background:#f1c40f;}
 .home.blue{bottom:0;left:0;background:#3498db;}
-.home-inner{width:70%;height:70%;background:#fff;border-radius:8px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;padding:10px;box-sizing:border-box;}
+.home-inner{width:70%;height:70%;background:#fff;border-radius:8px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:5px;padding:5px;box-sizing:border-box;}
 
-/* Center Triangle */
 .center-triangle{position:absolute;top:40%;left:40%;width:20%;height:20%;background:#333;clip-path:polygon(0 0, 100% 0, 50% 50%);}
 .center-triangle.bottom{clip-path:polygon(0 100%, 100% 100%, 50% 50%);}
 .center-triangle.left{clip-path:polygon(0 0, 0 100%, 50% 50%);}
 .center-triangle.right{clip-path:polygon(100% 0, 100% 100%, 50% 50%);}
-.center-box{position:absolute;top:40%;left:40%;width:20%;height:20%;background:#333;z-index:2;display:flex;align-items:center;justify-content:center;}
+.center-box{position:absolute;top:40%;left:40%;width:20%;height:20%;background:#333;z-index:2;}
 
-/* Path Cells Colors */
-.path-red{background:#ff4d4d;}
-.path-green{background:#2ecc71;}
-.path-yellow{background:#f1c40f;}
-.path-blue{background:#3498db;}
+.path-red{background:#ff4d4d; border:1px solid #cc0000;}
+.path-green{background:#2ecc71; border:1px solid #1e8e4e;}
+.path-yellow{background:#f1c40f; border:1px solid #b7950b;}
+.path-blue{background:#3498db; border:1px solid #1f618d;}
 
-/* Dice Area */
-.dice-area{width:100%;max-width:500px;display:flex;justify-content:space-between;align-items:center;padding:15px;background:#0a2322;border-top:2px solid #e0b04a;box-sizing:border-box;}
-.dice{width:50px;height:50px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;color:#333;box-shadow:0 4px 10px #0005;cursor:pointer;}
-.roll-btn{background:#e0b04a;color:#000;border:none;padding:10px 20px;border-radius:10px;font-weight:bold;font-size:1rem;cursor:pointer;}
-
-/* Ludo Tokens (Gotiyan) */
 .token{width:70%;height:70%;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 5px #0005;position:absolute;transition:all 0.3s;z-index:5;}
 
+/* Dice Area */
+.dice-area{width:100%;max-width:500px;display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:#0a2322;border-top:2px solid #e0b04a;box-sizing:border-box;margin-top:auto;}
+.dice{width:45px;height:45px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#333;box-shadow:0 4px 10px #0005;}
+.roll-btn{background:#e0b04a;color:#000;border:none;padding:10px 20px;border-radius:10px;font-weight:bold;font-size:1rem;cursor:pointer;}
+.roll-btn:disabled{opacity:0.5;}
 </style>
 </head>
 <body>
 <div class="header">
   <a href="index.html">← Wapas</a>
-  <div style="font-weight:bold;color:#e0b04a;">Ludo Game</div>
+  <div style="font-weight:bold;color:#e0b04a;" id="gidTxt">Room: ...</div>
 </div>
 
 <div class="container">
+  <div id="topProfiles"></div>
   <div class="board-wrapper" id="board">
-    <!-- Homes -->
-    <div class="home red" id="home-red"><div class="home-inner"><div id="r1"></div><div id="r2"></div><div id="r3"></div><div id="r4"></div></div></div>
-    <div class="home green" id="home-green"><div class="home-inner"><div id="g1"></div><div id="g2"></div><div id="g3"></div><div id="g4"></div></div></div>
-    <div class="home yellow" id="home-yellow"><div class="home-inner"><div id="y1"></div><div id="y2"></div><div id="y3"></div><div id="y4"></div></div></div>
-    <div class="home blue" id="home-blue"><div class="home-inner"><div id="b1"></div><div id="b2"></div><div id="b3"></div><div id="b4"></div></div></div>
+    <div class="home red" id="home-red"><div class="home-inner" id="home-grid-red"></div></div>
+    <div class="home green" id="home-green"><div class="home-inner" id="home-grid-green"></div></div>
+    <div class="home yellow" id="home-yellow"><div class="home-inner" id="home-grid-yellow"></div></div>
+    <div class="home blue" id="home-blue"><div class="home-inner" id="home-grid-blue"></div></div>
     
-    <!-- Center -->
     <div class="center-triangle" style="background:#2ecc71;"></div>
     <div class="center-triangle bottom" style="background:#3498db;"></div>
     <div class="center-triangle left" style="background:#ff4d4d;"></div>
@@ -70,10 +72,11 @@ a{color:#e0b04a;text-decoration:none;font-weight:bold;}
 </div>
 
 <div class="dice-area">
-  <div style="font-weight:bold;">Turn: <span style="color:#e0b04a;">Waiting...</span></div>
-  <div style="display:flex;gap:15px;align-items:center;">
+  <div style="font-weight:bold; font-size:0.9rem;">Turn: <span style="color:#e0b04a;" id="turnTxt">Wait...</span></div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div style="font-size:1.2rem; font-weight:bold; color:#e74c3c;" id="timerTxt"></div>
     <div class="dice" id="dice">🎲</div>
-    <button class="roll-btn" id="rollBtn">Roll</button>
+    <button class="roll-btn" id="rollBtn" disabled>Roll</button>
   </div>
 </div>
 
@@ -90,82 +93,221 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-const db = firebase.database();
+const auth = firebase.auth(), db = firebase.database();
+const $ = id => document.getElementById(id);
 
-// Wait for Firebase to load and generate the 15x15 Path Grid
-window.onload = () => {
-  generateBoardGrid();
-};
+let me=null, prof=null, curGid=null, gameRef=null, gameData=null;
+let turnTimer=null;
+let gameLoop = null;
 
-function generateBoardGrid() {
-  const board = document.getElementById('board');
+// Path for tokens
+const pathRed = [
+  {r:6,c:1},{r:6,c:2},{r:6,c:3},{r:6,c:4},{r:6,c:5},{r:5,c:6},{r:4,c:6},{r:3,c:6},{r:2,c:6},{r:1,c:6},{r:0,c:6},{r:0,c:7},{r:0,c:8},{r:1,c:8},{r:2,c:8},{r:3,c:8},{r:4,c:8},{r:5,c:8},{r:6,c:9},{r:6,c:10},{r:6,c:11},{r:6,c:12},{r:6,c:13},{r:6,c:14},{r:7,c:14},{r:8,c:14},{r:8,c:13},{r:8,c:12},{r:8,c:11},{r:8,c:10},{r:8,c:9},{r:9,c:8},{r:10,c:8},{r:11,c:8},{r:12,c:8},{r:13,c:8},{r:14,c:8},{r:14,c:7},{r:14,c:6},{r:13,c:6},{r:12,c:6},{r:11,c:6},{r:10,c:6},{r:9,c:6},{r:8,c:5},{r:8,c:4},{r:8,c:3},{r:8,c:2},{r:8,c:1},{r:8,c:0},{r:7,c:0},{r:6,c:0}
+];
+
+auth.onAuthStateChanged(async user => {
+  if(!user) { window.location.href='index.html'; return; }
+  me = user;
+  const s = await db.ref('profiles/'+me.uid).once('value');
+  if(s.exists()) { prof = s.val(); initGame(); }
+});
+
+async function initGame() {
+  const urlParams = new URLSearchParams(window.location.search);
+  curGid = urlParams.get('gid');
+  if(!curGid) { window.location.href='index.html'; return; }
+  $('gidTxt').textContent = 'Room: ' + curGid;
   
-  // We need a custom layout for the 15x15 grid
-  // Ludo path cells locations (Row, Col)
-  // We will generate the visual grid first. 
-  // The homes and center are absolutely positioned on top.
+  gameRef = db.ref('ludo_new_games/' + curGid);
   
-  // We only need to draw the path cells in the cross shape.
+  // JOIN LOGIC
+  const snap = await gameRef.once('value');
+  if(!snap.exists()) {
+     await gameRef.set({
+        status: 'waiting', admin: me.uid, turn: null, turnStart: Date.now(),
+        players: { [me.uid]: { name: prof.name, color: 'red', tokens: [0,0,0,0] } }
+     });
+  } else {
+     const g = snap.val();
+     if(g.status === 'waiting' && !g.players[me.uid]) {
+         const colors = ['red', 'green', 'yellow', 'blue'];
+         const pCount = Object.keys(g.players).length;
+         if(pCount >= 4) return alert('Room Full!');
+         await gameRef.child('players/' + me.uid).set({ name: prof.name, color: colors[pCount], tokens: [0,0,0,0] });
+     }
+  }
+
+  gameRef.on('value', s => {
+     gameData = s.val();
+     if(!gameData) return;
+     renderGame();
+  });
+  
+  buildBoard();
+}
+
+function buildBoard() {
+  const board = $('board');
   for(let r=0; r<15; r++) {
     for(let c=0; c<15; c++) {
-      // Skip the 4 homes (6x6 areas)
       if((r<6 && c<6) || (r<6 && c>8) || (r>8 && c<6) || (r>8 && c>8)) continue;
-      // Skip the center (3x3 area)
       if(r>=6 && r<=8 && c>=6 && c<=8) continue;
-
+      
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.id = `cell-${r}-${c}`;
       
-      // Color specific path cells
-      // Red Home Path
-      if(r===7 && c>0 && c<6) { cell.classList.add('path-red'); cell.classList.add('safe'); }
-      // Red Start (Safe)
-      if(r===6 && c===1) { cell.classList.add('path-red'); cell.classList.add('safe'); }
-
-      // Green Home Path
-      if(c===7 && r>0 && r<6) { cell.classList.add('path-green'); cell.classList.add('safe'); }
-      // Green Start (Safe)
-      if(r===1 && c===8) { cell.classList.add('path-green'); cell.classList.add('safe'); }
+      // Color mappings for visual appeal
+      if(r===7 && c>0 && c<6) cell.classList.add('path-red');
+      if(r===6 && c===1) cell.classList.add('path-red', 'safe');
       
-      // Yellow Home Path
-      if(r===7 && c>8 && c<14) { cell.classList.add('path-yellow'); cell.classList.add('safe'); }
-      // Yellow Start
-      if(r===8 && c===13) { cell.classList.add('path-yellow'); cell.classList.add('safe'); }
+      if(c===7 && r>0 && r<6) cell.classList.add('path-green');
+      if(r===1 && c===8) cell.classList.add('path-green', 'safe');
+      
+      if(r===7 && c>8 && c<14) cell.classList.add('path-yellow');
+      if(r===8 && c===13) cell.classList.add('path-yellow', 'safe');
+      
+      if(c===7 && r>8 && r<14) cell.classList.add('path-blue');
+      if(r===13 && c===6) cell.classList.add('path-blue', 'safe');
 
-      // Blue Home Path
-      if(c===7 && r>8 && r<14) { cell.classList.add('path-blue'); cell.classList.add('safe'); }
-      // Blue Start
-      if(r===13 && c===6) { cell.classList.add('path-blue'); cell.classList.add('safe'); }
-
-      // Add generic safe stars
-      if((r===2&&c===6) || (r===6&&c===12) || (r===12&&c===8) || (r===8&&c===2)) {
-        cell.classList.add('safe');
-      }
+      if((r===2&&c===6) || (r===6&&c===12) || (r===12&&c===8) || (r===8&&c===2)) cell.classList.add('safe');
 
       board.appendChild(cell);
     }
   }
-  
-  // Place dummy tokens in homes
-  placeToken('r1', 'red', 0);
-  placeToken('g1', 'green', 1);
-  placeToken('y1', 'yellow', 2);
-  placeToken('b1', 'blue', 3);
 }
 
-function placeToken(containerId, color, playerIdx) {
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  const t = document.createElement('div');
-  t.className = 'token';
-  t.style.position = 'relative'; // inside home grid
-  if(color === 'red') t.style.background = '#ff4d4d';
-  if(color === 'green') t.style.background = '#2ecc71';
-  if(color === 'yellow') t.style.background = '#f1c40f';
-  if(color === 'blue') t.style.background = '#3498db';
-  container.appendChild(t);
+function renderGame() {
+  // Draw Top Profiles
+  const tp = $('topProfiles'); tp.innerHTML = '';
+  const players = gameData.players || {};
+  const pCount = Object.keys(players).length;
+  
+  const colors = {red:'#ff4d4d', green:'#2ecc71', yellow:'#f1c40f', blue:'#3498db'};
+  
+  ['red','green','yellow','blue'].forEach(cName => {
+     const pUid = Object.keys(players).find(u => players[u].color === cName);
+     const box = document.createElement('div'); box.className = 'p-box';
+     
+     if(pUid && pUid === gameData.turn) box.classList.add('active');
+     
+     const av = document.createElement('div'); av.className = 'p-av';
+     av.style.background = colors[cName];
+     if(pUid) av.textContent = players[pUid].name[0].toUpperCase(); else av.textContent = '?';
+     
+     const nm = document.createElement('div'); nm.className = 'p-name';
+     nm.textContent = pUid ? players[pUid].name : 'Empty';
+     
+     box.appendChild(av); box.appendChild(nm);
+     tp.appendChild(box);
+  });
+
+  // Check Turn
+  if(gameData.status === 'waiting') {
+      if(pCount === 4) {
+          gameRef.update({status:'playing', turn: Object.keys(players)[0], turnStart: Date.now()});
+      } else {
+          $('turnTxt').textContent = `Wait (${pCount}/4)`;
+          $('rollBtn').disabled = true;
+          $('timerTxt').textContent = '';
+          clearInterval(turnTimer);
+          return;
+      }
+  }
+
+  const turnUid = gameData.turn;
+  const pInfo = players[turnUid];
+  
+  if(turnUid === me.uid) {
+     $('turnTxt').textContent = "Tumhari baari!";
+     $('turnTxt').style.color = "#2ecc71";
+     $('rollBtn').disabled = false;
+     startTimer(gameData.turnStart);
+  } else {
+     $('turnTxt').textContent = (pInfo ? pInfo.name : 'Wait') + " ki baari";
+     $('turnTxt').style.color = "#e74c3c";
+     $('rollBtn').disabled = true;
+     clearInterval(turnTimer);
+     $('timerTxt').textContent = '';
+  }
+
+  renderTokens();
 }
+
+function renderTokens() {
+  // Clear old tokens
+  document.querySelectorAll('.token').forEach(e => e.remove());
+  const players = gameData.players || {};
+  
+  for(let uid in players) {
+     const p = players[uid];
+     p.tokens.forEach((pos, idx) => {
+        const tok = document.createElement('div'); tok.className = 'token';
+        tok.style.background = p.color;
+        
+        if(pos === 0) {
+           // In Home
+           const homeGrid = $('home-grid-' + p.color);
+           if(homeGrid) homeGrid.appendChild(tok);
+        } else if (pos > 0 && pos <= 51) {
+           // On Path (Using Red path mapping for simplicity for all)
+           const pt = pathRed[pos];
+           const cell = $(`cell-${pt.r}-${pt.c}`);
+           if(cell) {
+               tok.style.position = 'absolute';
+               tok.style.width = '60%'; tok.style.height = '60%';
+               // Offset slightly for multiple tokens
+               tok.style.transform = `translate(${idx*2}px, ${idx*2}px)`;
+               cell.appendChild(tok);
+           }
+        }
+     });
+  }
+}
+
+function startTimer(startTime) {
+  clearInterval(turnTimer);
+  turnTimer = setInterval(() => {
+    let t = 10 - Math.floor((Date.now() - startTime)/1000);
+    if(t <= 0) { 
+        $('timerTxt').textContent = '(0s)'; 
+        if(gameData.turn === me.uid) autoSkip(); 
+    } else {
+        $('timerTxt').textContent = `(${t}s)`;
+    }
+  }, 500);
+}
+
+async function autoSkip() {
+  const uids = Object.keys(gameData.players);
+  const next = uids[(uids.indexOf(gameData.turn) + 1) % uids.length];
+  await gameRef.update({ turn: next, turnStart: Date.now() });
+}
+
+$('rollBtn').onclick = async () => {
+  if(gameData.turn !== me.uid) return;
+  $('rollBtn').disabled = true;
+  clearInterval(turnTimer);
+  
+  const dice = Math.floor(Math.random()*6)+1;
+  $('dice').textContent = dice;
+  
+  const myData = gameData.players[me.uid];
+  const tokens = [...myData.tokens];
+  
+  // Simple move logic (Move first possible token)
+  let moved = false;
+  for(let i=0; i<4; i++) {
+     if(tokens[i] === 0 && dice === 6) { tokens[i] = 1; moved = true; break; }
+     else if (tokens[i] > 0 && tokens[i] + dice <= 52) { tokens[i] += dice; moved = true; break; }
+  }
+  
+  const uids = Object.keys(gameData.players);
+  const next = (dice === 6) ? me.uid : uids[(uids.indexOf(me.uid) + 1) % uids.length];
+  
+  await gameRef.child('players/' + me.uid + '/tokens').set(tokens);
+  await gameRef.update({ turn: next, turnStart: Date.now() });
+};
 </script>
 </body>
 </html>

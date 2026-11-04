@@ -401,11 +401,20 @@ $('searchGameBtn').onclick = async () => {
   const box = $('gameResult'); box.innerHTML = 'Searching...';
   if(!gid) return;
   
-  const s = await db.ref('sl_games/' + gid).once('value');
-  if(!s.exists()) { box.innerHTML = '<p class="dim">Game ID not found in Snakes & Ladders.</p>'; return; }
+  let s = await db.ref('sl_games/' + gid).once('value');
+  let gameType = 'Snake';
+  if(!s.exists()) {
+      s = await db.ref('quiz_games/' + gid).once('value');
+      gameType = 'Quiz';
+  }
+  if(!s.exists()) {
+      s = await db.ref('ludo_new_games/' + gid).once('value');
+      gameType = 'Ludo';
+  }
+  if(!s.exists()) { box.innerHTML = '<p class="dim">Game ID not found in any game.</p>'; return; }
   
   const g = s.val();
-  let html = `<div class="card"><b>Game ID: ${gid}</b><br>Status: ${g.status}<br>Players:<br>`;
+  let html = `<div class="card"><b>Game Type: ${gameType}</b><br><b>Game ID: ${gid}</b><br>Status: ${g.status}<br>Players:<br>`;
   for(const uid in g.players) {
     html += `- ${g.players[uid].name} (Pos: ${g.players[uid].pos})<br>`;
   }
